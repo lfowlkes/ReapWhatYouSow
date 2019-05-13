@@ -79,6 +79,22 @@ Intro.prototype = {
         if((game.input.keyboard.justPressed(Phaser.Keyboard.SPACEBAR) || game.input.keyboard.justPressed(Phaser.Keyboard.ENTER)) && !this.inputCreated)
         {
             this.progtextObj.text = ''
+            if(this.i < this.msgs[this.index].length)
+            {
+                this.i = this.msgs[this.index].length;
+                this.textObj.text = this.msgs[this.index];
+                if(this.index == 0) //displays instruction on first line
+                {
+                    this.progtextObj.text = 'Press space >>'
+                }
+                else //trusts that the player now knows >> = press space
+                {
+                    this.progtextObj.x = 575
+                    this.progtextObj.text = '>>'
+                }
+            }
+            else
+            {
             this.index++;
             this.i = 0;
             this.counter = 0;
@@ -91,6 +107,7 @@ Intro.prototype = {
             {
                 pc.alpha = 0;
                 boss.alpha = 1;
+            }
             }
         }
         //TODO: remove dev cheat skip key
