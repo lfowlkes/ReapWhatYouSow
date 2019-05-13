@@ -9,6 +9,11 @@ Menu.prototype = {
         game.load.image('daybg', 'assets/img/officebgtemp.png');
         game.load.image('textbar', 'assets/img/textbar.png');
         game.load.image('avocado', 'assets/img/avocado.png');
+        game.load.image('titletext', 'assets/img/titletext.png');
+        game.load.image('opttext', 'assets/img/opttext.png');
+        game.load.image('playtext', 'assets/img/playtext.png');
+        game.load.image('creditstext', 'assets/img/creditstext.png');
+        game.load.image('quittext', 'assets/img/quittext.png');
         game.load.spritesheet('player', 'assets/img/george.png', 48, 48);
         
         //Source: https://freesound.org/people/timgormly/sounds/170142/
@@ -18,19 +23,107 @@ Menu.prototype = {
     },
     create: function() { // Loads menu & instructions
         game.stage.backgroundColor = '#000000'; // sets background color
-        words = game.add.text(0, 100, 'Look at this hot hot menu', { font: '30px Courier New', fill: '#FFFFFF', align:'center' });
+        titletext = game.add.sprite(50, 30, 'titletext');
+        titletext.scale.setTo(.75, .75); titletext.alpha = 0;
+        playtext = game.add.sprite(232, 130, 'playtext');
+        playtext.scale.setTo(.75, .75); playtext.alpha = 0; playtext.inputEnabled = true;
+        opttext = game.add.sprite(30, 200, 'opttext');
+        opttext.scale.setTo(.75, .75); opttext.alpha = 0;
+        creditstext = game.add.sprite(380, 200, 'creditstext');
+        creditstext.scale.setTo(.75, .75); creditstext.alpha = 0; creditstext.inputEnabled = true;
+        quittext = game.add.sprite(236, 300, 'quittext');
+        quittext.scale.setTo(.75, .75); quittext.alpha = 0; quittext.inputEnabled = true;
+        ALPHARATE = .03; //Rate at which things fade in/out
+        
        
     },
     
     update: function() {
-        if(game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR))
+        /**** Fades in text *****/
+        if(titletext.alpha < .9)
         {
-            game.state.start('Intro'); //moves to menu phase when player presses space
+            titletext.alpha += ALPHARATE;
+            console.log('alpha: ' + titletext.alpha);
         }
-        if (words.events.onInputOver)
+        if(titletext.alpha >=.9 && playtext.alpha <= .9)
         {
-            words.text = 'look at this sexy sexy menu';
+            playtext.alpha += ALPHARATE;
         }
+        if(playtext.alpha >= .9 && opttext.alpha <=.9)
+        {
+            opttext.alpha += ALPHARATE;
+        }
+        if(opttext.alpha >=.9 && quittext.alpha <=.9)
+        {
+            quittext.alpha += ALPHARATE;
+        }
+        if(quittext.alpha >=.9 && creditstext.alpha <=.9)
+        {
+            creditstext.alpha += ALPHARATE;
+        }
+        
+        
+        /***** Scales up on hover *****/
+        playtext.events.onInputOver.add(this.hoverPlay, this);
+        playtext.events.onInputOut.add(this.stopPlayHover, this);
+        opttext.events.onInputOver.add(this.hoverOpt, this); // for some reason this doesn't work but we'll figure out why later
+        opttext.events.onInputOut.add(this.stopOptHover, this);
+        creditstext.events.onInputOver.add(this.hoverCredits, this);
+        creditstext.events.onInputOut.add(this.stopCreditsHover, this);
+        quittext.events.onInputOver.add(this.hoverQuit, this);
+        quittext.events.onInputOut.add(this.stopQuitHover, this);
+        /**** Handles moving to different screens ****/
+        playtext.events.onInputDown.add(this.startPlay, this);
+    },
+    
+    hoverPlay: function() {
+        playtext.scale.setTo(1, 1);
+        playtext.x -= 12;
+        playtext.y -= 10;
+    },
+    
+    stopPlayHover: function() {
+        playtext.scale.setTo(.75, .75);
+        playtext.x += 12;
+        playtext.y += 10;
+    },
+    
+    hoverOpt: function() {
+        console.log('Here');
+        opttext.scale.setTo(1, 1);
+        opttext.x -= 12;
+        opttext.y -= 10;
+    },
+    
+    stopOptHover: function() {
+        opttext.scale.setTo(.75, .75);
+        opttext.x += 12;
+        opttext.y += 10;
+    },
+    hoverCredits: function() {
+        creditstext.scale.setTo(1, 1);
+        creditstext.x -= 12;
+        creditstext.y -= 10;
+    },
+    
+    stopCreditsHover: function() {
+        creditstext.scale.setTo(.75, .75);
+        creditstext.x += 12;
+        creditstext.y += 10;
+    },
+    hoverQuit: function() {
+        quittext.scale.setTo(1, 1);
+        quittext.x -= 12;
+        quittext.y -= 10;
+    },
+    
+    stopQuitHover: function() {
+        quittext.scale.setTo(.75, .75);
+        quittext.x += 12;
+        quittext.y += 10;
+    },
+    startPlay: function() {
+        game.state.start('Intro');
     }
 }
 
@@ -70,10 +163,8 @@ Intro.prototype = {
         game.stage.backgroundColor = '#000'; // sets background color
         /* Plugin source: https://github.com/azerion/phaser-input*/
         this.input = game.add.plugin(PhaserInput.Plugin)
-        pc = game.add.sprite(10, 140, 'PC');
-        boss = game.add.sprite(450, 125, 'boss');
-        boss.scale.x = .6;
-        boss.scale.y = .6;
+        pc = game.add.sprite(-5, 90, 'PC');
+        boss = game.add.sprite(460, 89, 'boss');
         pc.alpha = 0;
         this.textaud = game.add.audio('textaud');
         
@@ -226,7 +317,7 @@ Day.prototype = {
         msg = 'You can move around the office\nusing the arrow keys or WASD.';
         counter = 0; // frame counter
         moved = false; // checks if the move message was destroyed yet
-        
+        activeText = false; //checks if the user is in the middle of a dialogue spot
         objs = game.add.group();
         objs.enableBody = true;
         avo1 = objs.create(800, 200, 'avocado');
@@ -236,7 +327,7 @@ Day.prototype = {
         avo2.body.immovable = true;
         avo3.body.immovable = true;
         game.physics.arcade.enable(objs);
-        SPEED = 150; //dev speed constant, default is 100
+        SPEED = 100; //dev speed constant, default is 100
         
     },
     
@@ -265,47 +356,54 @@ Day.prototype = {
         game.camera.follow(player, Phaser.Camera.FOLLOW_TOPDOWN);
         //textbar.x = game.camera.x; textbar.y = game.camera.y + 286;
         //lets the player move with WASD or arrow keys
-        if(cursors.left.isDown || game.input.keyboard.isDown(Phaser.Keyboard.A))
+        if(!activeText) //deals with player movement, but only if they're not in the middle of a text sequence
         {
-            player.body.velocity.x = SPEED * -1;
-            player.animations.play('left');
-            if(!moved)
+            if(cursors.left.isDown || game.input.keyboard.isDown(Phaser.Keyboard.A))
             {
-                moved = true;
+                player.body.velocity.x = SPEED * -1;
+                player.animations.play('left');
+                if(!moved)
+                {
+                    moved = true;
+                }
+            }
+            else if(cursors.right.isDown || game.input.keyboard.isDown(Phaser.Keyboard.D))
+            {
+                player.body.velocity.x = SPEED;
+                player.animations.play('right');
+                if(!moved)
+                {
+                    moved = true;
+                }
+            }
+            else if(cursors.up.isDown || game.input.keyboard.isDown(Phaser.Keyboard.W))
+            {
+                player.body.velocity.y = SPEED * -1;
+                player.animations.play('up');
+                if(!moved)
+                {
+                    moved = true;
+                }
+            }
+            else if(cursors.down.isDown || game.input.keyboard.isDown(Phaser.Keyboard.S))
+            {
+                player.body.velocity.y = SPEED;
+                player.animations.play('down');
+                if(!moved)
+                  {
+                    moved = true;
+                  }
+            }
+            else
+            {
+                player.animations.stop();
+                player.body.velocity.x = 0;
+                player.body.velocity.y = 0;
             }
         }
-        else if(cursors.right.isDown || game.input.keyboard.isDown(Phaser.Keyboard.D))
+        else //deals with dialogue when text sequence is active
         {
-            player.body.velocity.x = SPEED;
-            player.animations.play('right');
-            if(!moved)
-            {
-                moved = true;
-            }
-        }
-        else if(cursors.up.isDown || game.input.keyboard.isDown(Phaser.Keyboard.W))
-        {
-            player.body.velocity.y = SPEED * -1;
-            player.animations.play('up');
-            if(!moved)
-            {
-                moved = true;
-            }
-        }
-        else if(cursors.down.isDown || game.input.keyboard.isDown(Phaser.Keyboard.S))
-        {
-            player.body.velocity.y = SPEED;
-            player.animations.play('down');
-            if(!moved)
-              {
-                moved = true;
-              }
-        }
-        else
-        {
-            player.animations.stop();
-            player.body.velocity.x = 0;
-            player.body.velocity.y = 0;
+        
         }
         
         game.physics.arcade.collide(player, objs);
