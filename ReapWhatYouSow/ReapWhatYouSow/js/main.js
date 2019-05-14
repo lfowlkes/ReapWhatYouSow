@@ -1,31 +1,138 @@
+/* Creators: Kristy Mihalyi, Kendra Shu, and Lauren Fowlkes
+ * Group 26: Reap What You Sow
+ * Github: https://github.com/lfowlkes/ReapWhatYouSow
+ * Theme: Eternal
+ */
 var game = new Phaser.Game(600, 400, Phaser.AUTO, 'phaser');
 
-
+var name = ''; // the name of the character, inputted later by player
 var Menu = function(game) {};
 Menu.prototype = {
     
     preload: function() {
+        /* Note that these are all placeholder images as of now and will not exist in the final build*/
         game.load.image('office', 'assets/img/tempoffice.png');
-        game.load.image('daybg', 'assets/img/gridbgtemp.png');
+        game.load.image('daybg', 'assets/img/officebgtemp.png');
         game.load.image('textbar', 'assets/img/textbar.png');
         game.load.image('avocado', 'assets/img/avocado.png');
+        game.load.image('titletext', 'assets/img/titletext.png');
+        game.load.image('opttext', 'assets/img/opttext.png');
+        game.load.image('playtext', 'assets/img/playtext.png');
+        game.load.image('creditstext', 'assets/img/creditstext.png');
+        game.load.image('quittext', 'assets/img/quittext.png');
+        game.load.image('housebg', 'assets/img/temphouse.png');
+        game.load.image('ally', 'assets/img/allytemp.png');
         game.load.spritesheet('player', 'assets/img/george.png', 48, 48);
+        
+        //Source: https://freesound.org/people/timgormly/sounds/170142/
+        game.load.audio('textaud', 'assets/audio/temptextsound.mp3');
+        //Source: https://incompetech.filmmusic.io/song/3930-isolated/
+        game.load.audio('officebgm', 'assets/audio/tempofficebgm.mp3');
+        
+        game.load.image('temp', 'assets/img/tempalert.png');
     },
     create: function() { // Loads menu & instructions
         game.stage.backgroundColor = '#000000'; // sets background color
-        words = game.add.text(0, 100, 'Look at this hot hot menu', { font: '30px Courier New', fill: '#FFFFFF', align:'center' });
+        titletext = game.add.sprite(50, 30, 'titletext');
+        titletext.scale.setTo(.75, .75); titletext.alpha = 0;
+        playtext = game.add.sprite(232, 130, 'playtext');
+        playtext.scale.setTo(.75, .75); playtext.alpha = 0; playtext.inputEnabled = true;
+        opttext = game.add.sprite(30, 200, 'opttext');
+        opttext.scale.setTo(.75, .75); opttext.alpha = 0; opttext.inputEnabled = true;
+        creditstext = game.add.sprite(380, 200, 'creditstext');
+        creditstext.scale.setTo(.75, .75); creditstext.alpha = 0; creditstext.inputEnabled = true;
+        quittext = game.add.sprite(236, 300, 'quittext');
+        quittext.scale.setTo(.75, .75); quittext.alpha = 0; quittext.inputEnabled = true;
+        ALPHARATE = .03; //Rate at which things fade in/out
+        
        
     },
     
     update: function() {
-        if(game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR))
+        /**** Fades in text *****/
+        if(titletext.alpha < .9)
         {
-            game.state.start('Intro'); //moves to menu phase when player presses space
+            titletext.alpha += ALPHARATE;
         }
-        if (words.events.onInputOver)
+        if(titletext.alpha >=.9 && playtext.alpha <= .9)
         {
-            words.text = 'look at this sexy sexy menu';
+            playtext.alpha += ALPHARATE;
         }
+        if(playtext.alpha >= .9 && opttext.alpha <=.9)
+        {
+            opttext.alpha += ALPHARATE;
+        }
+        if(opttext.alpha >=.9 && quittext.alpha <=.9)
+        {
+            quittext.alpha += ALPHARATE;
+        }
+        if(quittext.alpha >=.9 && creditstext.alpha <=.9)
+        {
+            creditstext.alpha += ALPHARATE;
+        }
+        
+        
+        /***** Scales up on hover *****/
+        playtext.events.onInputOver.add(this.hoverPlay, this);
+        playtext.events.onInputOut.add(this.stopPlayHover, this);
+        opttext.events.onInputOver.add(this.hoverOpt, this); // for some reason this doesn't work but we'll figure out why later
+        opttext.events.onInputOut.add(this.stopOptHover, this);
+        creditstext.events.onInputOver.add(this.hoverCredits, this);
+        creditstext.events.onInputOut.add(this.stopCreditsHover, this);
+        quittext.events.onInputOver.add(this.hoverQuit, this);
+        quittext.events.onInputOut.add(this.stopQuitHover, this);
+        /**** Handles moving to different screens ****/
+        playtext.events.onInputDown.add(this.startPlay, this);
+    },
+    /***** All the functions for handling text hover events *****/
+    hoverPlay: function() {
+        playtext.scale.setTo(1, 1);
+        playtext.x -= 12;
+        playtext.y -= 10;
+    },
+    
+    stopPlayHover: function() {
+        playtext.scale.setTo(.75, .75);
+        playtext.x += 12;
+        playtext.y += 10;
+    },
+    
+    hoverOpt: function() {
+        console.log('Here');
+        opttext.scale.setTo(1, 1);
+        opttext.x -= 12;
+        opttext.y -= 10;
+    },
+    
+    stopOptHover: function() {
+        opttext.scale.setTo(.75, .75);
+        opttext.x += 12;
+        opttext.y += 10;
+    },
+    hoverCredits: function() {
+        creditstext.scale.setTo(1, 1);
+        creditstext.x -= 12;
+        creditstext.y -= 10;
+    },
+    
+    stopCreditsHover: function() {
+        creditstext.scale.setTo(.75, .75);
+        creditstext.x += 12;
+        creditstext.y += 10;
+    },
+    hoverQuit: function() {
+        quittext.scale.setTo(1, 1);
+        quittext.x -= 12;
+        quittext.y -= 10;
+    },
+    
+    stopQuitHover: function() {
+        quittext.scale.setTo(.75, .75);
+        quittext.x += 12;
+        quittext.y += 10;
+    },
+    startPlay: function() {
+        game.state.start('Intro');
     }
 }
 
@@ -37,22 +144,30 @@ Intro.prototype = {
         //I'm intentionally changing to quotes so the script stands out
         //Array of script strings
         this.msgs = [
-        /*0*/ "Ah, you're here. Thanks for coming in.",
-        /*1*/"I appreciate your agency agreeing to work\nwith us, Ms ...",
-        /*2*/"I'm so sorry, remind me your name again?",
+        /*0*/ "Welcome, come in.",
+        /*1*/"You're the temp I hired, right?\nYour buddy came in earlier.",
+        /*2*/"Right, what was your name again?",
         /*3*/"This is a line that will never be used",
-        /*4*/"My name is " + this.name,
-        /*5*/"Oh! Ms. " + this.name + ", of course!"
+        /*4*/"It's a pleasure meeting you, " + name + ".",
+        /*5*/"I would prefer to meet under more conventional\ncircumstances, but... This is how it is.",
+                     /*6*/"We spoke on the phone, but I'll debrief you\nonce more:",
+        /*7*/"I suspect one of my employees has been skimming\nfunds from this company.",
+        /*8*/"Now, that's not a good image for me,\nso I'd like to keep this discreet.",
+        /*9*/"I don't have much time on my hands,\nand the managers I hired have their hands full.",
+        /*10*/"You're here to help me out, right?",
+        /*11*/"Of course. I hired you for a reason, after all.",
+        /*12*/"I want you to find enough evidence that will\nprove him guilty.",
+        /*13*/"You'll only be here a short while,\nbut I'm trusting you with this important task.",
+        /*14*/"Your boss spoke greatly about you -—\nDon't let me down."
                      ];
         ///////////
-        this.pcSprite = [4]; //array of all line #s that need PC sprite on screen
+        this.pcSprite = [87]; //array of all line #s that need PC sprite on screen
         this.bossSprite = [0, 1, 2, 5]; //array of all line #s that need the boss sprite on screen
         this.textObj = game.add.text(10, 300, 'wow', { font: '20px Courier New', fill: '#FFF'}); //Text object used for displying typewriter script text
         this.progtextObj = game.add.text(470, 375, '', { font: '15px Courier New', fill: '#FFF', align: 'right'});
         this.index = 0; //which line of the script we're pulling from
         this.i = 0; //what character of the sentence the typewriter is on
         this.counter = 0; //counter to slow down the typewriter.
-        this.name = ''; // the name of the character, inputted later by player
         this.inputCreated = false; //checks if the user has reached the textbox screen yet
         this.temp; //text object to be used for instructions
         
@@ -65,11 +180,10 @@ Intro.prototype = {
         game.stage.backgroundColor = '#000'; // sets background color
         /* Plugin source: https://github.com/azerion/phaser-input*/
         this.input = game.add.plugin(PhaserInput.Plugin)
-        pc = game.add.sprite(10, 140, 'PC');
-        boss = game.add.sprite(450, 125, 'boss');
-        boss.scale.x = .6;
-        boss.scale.y = .6;
+        pc = game.add.sprite(-5, 90, 'PC');
+        boss = game.add.sprite(460, 89, 'boss');
         pc.alpha = 0;
+        this.textaud = game.add.audio('textaud');
         
     },
     
@@ -172,20 +286,19 @@ Intro.prototype = {
            {
            this.temp.destroy();
            inputBox.endFocus(); //sets textbox inactive
-           this.name = inputBox.value; //sets the name field to whatever the user entered
+           name = inputBox.value; //sets the name field to whatever the user entered
            inputBox.destroy(); //destroys the textbox
            this.inputCreated = false; //we no longer have an active textbox, so false
            this.index++; //advances to the next line of dialogue
-           this.msgs[4] = "My name is " + this.name + ".";
-           this.msgs[5] = "Oh! Ms. " + this.name + ", of course!"; //updates the script with next name
-            pc.alpha = 1;
-            boss.alpha = 0;
+           this.msgs[4] = "It's a pleasure meeting you, " + name +"."; //updates the script with next name
            }
     },
     // Moderately unnecessary function for typewriter text display, but it looks nice to have things as their own function so I made this.
     typewriter: function(msg, textObj, i) {
         //console.log(msg);
         textObj.text = msg.substr(0, i);
+        if(this.counter % 4 == 0)
+        this.textaud.play('', 0, .125, false);
     }
     
 }
@@ -198,10 +311,12 @@ Day.prototype = {
         cursors = game.input.keyboard.createCursorKeys();
         game.physics.startSystem(Phaser.Physics.ARCADE);
         game.stage.backgroundColor = '#000'; // sets background color
-        game.world.setBounds(0, 0, 1200, 800);
+        game.world.setBounds(0, 0, 1600, 1000);
         daybg = game.add.sprite(0, 0, 'daybg');
         daybg.alpha = 0;
-        player = game.add.sprite(10, 100, 'player');
+        this.officebgm = game.add.audio('officebgm');
+        this.officebgm.play('', 0, .5, true);
+        player = game.add.sprite(50, 165, 'player');
         textbar = game.add.sprite(0, 286, 'textbar');
         player.scale.x = 1.5; player.scale.y = 1.5;
         game.physics.arcade.enable(player);
@@ -216,7 +331,7 @@ Day.prototype = {
         msg = 'You can move around the office\nusing the arrow keys or WASD.';
         counter = 0; // frame counter
         moved = false; // checks if the move message was destroyed yet
-        
+        activeText = false; //checks if the user is in the middle of a dialogue spot
         objs = game.add.group();
         objs.enableBody = true;
         avo1 = objs.create(800, 200, 'avocado');
@@ -226,8 +341,10 @@ Day.prototype = {
         avo2.body.immovable = true;
         avo3.body.immovable = true;
         game.physics.arcade.enable(objs);
-        SPEED = 150; //dev speed constant, default is 100
+        SPEED = 100; //dev speed constant, default is 100
         
+        temp = game.add.sprite(250, 0, 'temp');
+        temp.scale.setTo(.5, .5);
     },
     
     update: function() {
@@ -255,50 +372,64 @@ Day.prototype = {
         game.camera.follow(player, Phaser.Camera.FOLLOW_TOPDOWN);
         //textbar.x = game.camera.x; textbar.y = game.camera.y + 286;
         //lets the player move with WASD or arrow keys
-        if(cursors.left.isDown || game.input.keyboard.isDown(Phaser.Keyboard.A))
+        if(!activeText) //deals with player movement, but only if they're not in the middle of a text sequence
         {
-            player.body.velocity.x = SPEED * -1;
-            player.animations.play('left');
-            if(!moved)
+            if(cursors.left.isDown || game.input.keyboard.isDown(Phaser.Keyboard.A))
             {
-                moved = true;
+                player.body.velocity.x = SPEED * -1;
+                player.animations.play('left');
+                if(!moved)
+                {
+                    moved = true;
+                }
+            }
+            else if(cursors.right.isDown || game.input.keyboard.isDown(Phaser.Keyboard.D))
+            {
+                player.body.velocity.x = SPEED;
+                player.animations.play('right');
+                if(!moved)
+                {
+                    moved = true;
+                }
+            }
+            else if(cursors.up.isDown || game.input.keyboard.isDown(Phaser.Keyboard.W))
+            {
+                player.body.velocity.y = SPEED * -1;
+                player.animations.play('up');
+                if(!moved)
+                {
+                    moved = true;
+                }
+            }
+            else if(cursors.down.isDown || game.input.keyboard.isDown(Phaser.Keyboard.S))
+            {
+                player.body.velocity.y = SPEED;
+                player.animations.play('down');
+                if(!moved)
+                  {
+                    moved = true;
+                  }
+            }
+            else
+            {
+                player.animations.stop();
+                player.body.velocity.x = 0;
+                player.body.velocity.y = 0;
             }
         }
-        else if(cursors.right.isDown || game.input.keyboard.isDown(Phaser.Keyboard.D))
+        else //deals with dialogue when text sequence is active
         {
-            player.body.velocity.x = SPEED;
-            player.animations.play('right');
-            if(!moved)
-            {
-                moved = true;
-            }
-        }
-        else if(cursors.up.isDown || game.input.keyboard.isDown(Phaser.Keyboard.W))
-        {
-            player.body.velocity.y = SPEED * -1;
-            player.animations.play('up');
-            if(!moved)
-            {
-                moved = true;
-            }
-        }
-        else if(cursors.down.isDown || game.input.keyboard.isDown(Phaser.Keyboard.S))
-        {
-            player.body.velocity.y = SPEED;
-            player.animations.play('down');
-            if(!moved)
-              {
-                moved = true;
-              }
-        }
-        else
-        {
-            player.animations.stop();
-            player.body.velocity.x = 0;
-            player.body.velocity.y = 0;
+            /// will come back to this some day but today is not that day
         }
         
         game.physics.arcade.collide(player, objs);
+        
+        if(game.input.keyboard.isDown(Phaser.Keyboard.X))
+        {
+            game.state.start('Battle');
+            this.officebgm.stop();
+        }
+    
     }
 }
     
@@ -306,17 +437,94 @@ var Battle = function(game) {};
 Battle.prototype = {
     create: function() { //
         game.stage.backgroundColor = '#facade'; // sets background color
-        game.add.text(0, 100, 'hahahah u done fucked up', { font: '30px Courier New', fill: '#000', align:'center' });
+        house = game.add.sprite(0, 0, 'housebg');
+        game.add.sprite(0, 286, 'textbar');
+        this.textObj = game.add.text(5, 300, '', { font: '20px Courier New', fill: '#FFF' });
+        //All messages to be displayed on screen
+        this.msgs = [
+        /*0*/ "Good to see you, " + name + ".",
+        /*1*/ "You again? What are you doing here?",
+        /*2*/ "Same as you; hunting down the trash living here\nwho keeps cheating us out of their death.",
+        /*3*/ "Seriously? You're a Grim Reaper too?",
+        /*4*/ "To be continued..."];
+        this.index = 0; //which line of msg array we're on
+        this.i = 0; //which letter of line we're on
+        this.counter = 0; //frame counter for text delay
+        this.progtextObj = game.add.text(470, 375, '', { font: '15px Courier New', fill: '#FFF' });
+        this.textaud = game.add.audio('textaud');
+        pc = game.add.sprite(610, 90, 'PC');
+        ally = game.add.sprite(-5, 89, 'ally');
+        pc.alpha = 0; pc.scale.x = -1;
+        this.pcSprite = [1, 3]; //array of all line #s that need PC sprite on screen
+        this.allySprite = [0, 2]; //array of all line #s that need the ally sprite on screen
         
     },
     
     update: function() {
         
+        if(game.input.keyboard.justPressed(Phaser.Keyboard.SPACEBAR))
+            {
+                if(this.i < this.msgs[this.index].length)
+                {
+                    this.i = this.msgs[this.index].length;
+                    this.textObj.text = this.msgs[this.index];
+                }
+                else
+                {
+                    this.index++;
+                    this.i = 0;
+                    this.counter = 0;
+                    
+                    if(this.pcSprite.includes(this.index)) //checks if we're on a line that needs the PC sprite on screen
+                    {
+                        pc.alpha = 1;
+                        ally.alpha = 0;
+                    }
+                    else if (this.allySprite.includes(this.index))// we're on a line that needs ally's sprite on screen
+                    {
+                        pc.alpha = 0;
+                        ally.alpha = 1;
+                    }
+                    else
+                    {
+                        pc.alpha = 0;
+                        ally.alpha = 0;
+                        this.textObj.x = 350;
+                    }
+                }
+                
+            }
+            
+        if(this.index < this.msgs.length && this.counter % 2 == 0) //displays each letter every 2 frames
+        {
+            if(this.i <= this.msgs[this.index].length)
+            {
+                this.typewriter(this.msgs[this.index], this.textObj, this.i); //calls typewriter function
+                this.i++; //moves us to the next letter
+            }
+            if(this.i == this.msgs[this.index].length)
+            {
+                if(this.index == 0) //displays instruction on first line
+                {
+                    this.progtextObj.text = 'Press space >>'
+                }
+                else //trusts that the player now knows >> = press space
+                {
+                    this.progtextObj.x = 575
+                    this.progtextObj.text = '>>'
+                }
+            }
+        }
+        this.counter++;
+    },
+    
+    typewriter: function(msg, textObj, i) {
+        //console.log(msg);
+        textObj.text = msg.substr(0, i);
+        if(this.counter % 4 == 0)
+            this.textaud.play('', 0, .125, false);
     }
 }
-
-
-
 
 
 //Adds game states
