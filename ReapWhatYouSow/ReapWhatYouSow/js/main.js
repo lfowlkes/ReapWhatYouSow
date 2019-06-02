@@ -7,7 +7,7 @@ var game = new Phaser.Game(800, 560, Phaser.AUTO, 'phaser');
 
 
 var name = ''; // the name of the character, inputted later by player
-var musicOn = true; //if the player wants music on
+var musicOff = false; //if the player wants music on
 var soundOn = true; // if the player wants sound effects on
 
 var Menu = function(game) {};
@@ -16,7 +16,7 @@ Menu.prototype = {
     preload: function() {
         /* Note that these are all placeholder images as of now and will not exist in the final build*/
         game.load.image('office', 'assets/img/tempoffice.png');
-        game.load.image('daybg', 'assets/img/officebgtemp.png');
+        game.load.image('daybg', 'assets/img/officetest.png');
         game.load.image('textbar', 'assets/img/textbar.png');
         game.load.image('avocado', 'assets/img/avocado.png');
         game.load.image('titletext', 'assets/img/titletext.png');
@@ -27,9 +27,13 @@ Menu.prototype = {
         game.load.image('housebg', 'assets/img/temphouse.png');
         game.load.image('ally', 'assets/img/allytemp.png');
         game.load.image('ekey', 'assets/img/ekey.png');
+        game.load.image('copmac', 'assets/img/copymachine.png');
+        game.load.image('board', 'assets/img/board.png');
+        game.load.image('npc1', 'assets/img/npc1.png');
+        game.load.image('desk', 'assets/img/desk.png');
         game.load.spritesheet('player', 'assets/img/player.png', 32, 32);
-        game.load.tilemap('officemap', 'assets/img/officetest.json', null, Phaser.Tilemap.TILED_JSON);
-        game.load.image('tiles', 'assets/img/officetest.png', 75, 35);
+        /*game.load.tilemap('officemap', 'assets/img/officetest.json', null, Phaser.Tilemap.TILED_JSON);
+        game.load.image('tiles', 'assets/img/officetest.png', 75, 35);*/
         
         //Source: https://freesound.org/people/timgormly/sounds/170142/
         game.load.audio('textaud', 'assets/audio/temptextsound.mp3');
@@ -54,10 +58,12 @@ Menu.prototype = {
         quittext.scale.setTo(.75, .75); quittext.alpha = 0; quittext.inputEnabled = true;
         ALPHARATE = .03; //Rate at which things fade in/out
         this.menubgm = game.add.audio('menubgm');
-       if(musicOn = true)
-       {
+        console.log(musicOff);
+        if(musicOff = false)
+        {
+           console.log(musicOff);
            this.menubgm.play('', 0, .5, true);
-       }
+        }
     },
     
     update: function() {
@@ -322,17 +328,22 @@ Day.prototype = {
         cursors = game.input.keyboard.createCursorKeys();
         game.physics.startSystem(Phaser.Physics.ARCADE);
         game.stage.backgroundColor = '#000'; // sets background color
-        game.world.setBounds(0, 0, 1600, 1000);
+        game.world.setBounds(0, 0, 2000, 934);
         daybg = game.add.sprite(0, 0, 'daybg');
         daybg.alpha = 0;
         /*officetmap = game.add.tilemap('officemap');
         map.addTilesetImage('officetest.png', 'tiles');*/
         this.officebgm = game.add.audio('officebgm');
-        this.officebgm.play('', 0, .5, true);
-        player = game.add.sprite(50, 165, 'player');
+        if(musicOff = false)
+        {
+            this.officebgm.play('', 0, .5, true);
+        }
+        player = game.add.sprite(250, 305, 'player');
         textbar = game.add.sprite(0, 432, 'textbar');
+        textbar2 = game.add.sprite(-100, -100, 'textbar');
         textbar.scale.setTo(1.5, 1.5);
-        player.scale.x = 2; player.scale.y = 2;
+        textbar2.scale.setTo(2, 1.5);
+        player.scale.setTo(2,2);
         game.physics.arcade.enable(player);
         player.animations.add('left', [4, 3, 4, 5], 10, true);
         player.animations.add('right', [7, 6, 7, 8], 10, true);
@@ -352,20 +363,25 @@ Day.prototype = {
         /***** Interaction objects *****/
         objs = game.add.group();
         objs.enableBody = true;
-        /*0*/avo1 = objs.create(800, 200, 'avocado');
-        /*1*/avo2 = objs.create(700, 400, 'avocado');
-        /*2*/avo3 = objs.create(1000, 600, 'avocado');
-        avo1.body.immovable = true;
-        avo2.body.immovable = true;
-        avo3.body.immovable = true;
+        /*0*/copymach = objs.create(1922, 591, 'copmac');
+        copymach.scale.setTo(1.2, 1.2);
+        /*1*/board = objs.create(386, 560, 'board'); board.scale.setTo(.8, .8);
+        /*2*/npc1 = objs.create(1847, 165, 'npc1'); npc1.scale.setTo(1.5,1.5);
+        /*3*/desk = objs.create(835, 480, 'desk'); desk.scale.setTo(.3, .3); desk.alpha = 0;
+        copymach.body.immovable = true;
+        board.body.immovable = true;
+        npc1.body.immovable = true;
+        desk.body.immovable = true;
         game.physics.arcade.enable(objs);
         trigKeys = game.add.group();
-        trig1 = trigKeys.create(800, 170, 'ekey'); trig1.alpha = 0;
-        trig2 = trigKeys.create(700, 370, 'ekey'); trig2.alpha = 0;
-        trig3 = trigKeys.create(1000, 570, 'ekey'); trig3.alpha = 0;
-        found = [false, false, false];
+        trig1 = trigKeys.create(copymach.x+10, copymach.y - 30, 'ekey'); trig1.alpha = 0;
+        trig2 = trigKeys.create(board.x+20, board.y-30, 'ekey'); trig2.alpha = 0;
+        trig3 = trigKeys.create(npc1.x+5, npc1.y-30, 'ekey'); trig3.alpha = 0;
+        trig4 = trigKeys.create(desk.x+15, desk.y-30, 'ekey'); trig4.alpha = 0;
+        found = [false, false, false, false];
+        numFound = 0;
+        inRange = [false, false, false, false]; //array of booleans testing if player is within range of NPC/O
         
-        inRange = [false, false, false]; //array of booleans testing if player is within range of NPC/O
         
     },
     
@@ -396,41 +412,45 @@ Day.prototype = {
         //lets the player move with WASD or arrow keys
         if(!activeText) //deals with player movement, but only if they're not in the middle of a text sequence
         {
-            if(cursors.left.isDown || game.input.keyboard.isDown(Phaser.Keyboard.A))
+            // Checks of amy key is pressed, formatted in this terrible way for diagonal movement
+            if(cursors.left.isDown || game.input.keyboard.isDown(Phaser.Keyboard.A) ||cursors.right.isDown || game.input.keyboard.isDown(Phaser.Keyboard.D) || cursors.up.isDown || game.input.keyboard.isDown(Phaser.Keyboard.W) || cursors.down.isDown || game.input.keyboard.isDown(Phaser.Keyboard.S))
             {
-                player.body.velocity.x = SPEED * -1;
-                player.animations.play('left');
-                if(!moved)
+                if(cursors.left.isDown || game.input.keyboard.isDown(Phaser.Keyboard.A))
                 {
-                    moved = true;
+                    player.body.velocity.x = SPEED * -1;
+                    player.animations.play('left');
+                    if(!moved)
+                    {
+                        moved = true;
+                    }
                 }
-            }
-            else if(cursors.right.isDown || game.input.keyboard.isDown(Phaser.Keyboard.D))
-            {
-                player.body.velocity.x = SPEED;
-                player.animations.play('right');
-                if(!moved)
+                if(cursors.right.isDown || game.input.keyboard.isDown(Phaser.Keyboard.D))
                 {
-                    moved = true;
+                    player.body.velocity.x = SPEED;
+                    player.animations.play('right');
+                    if(!moved)
+                    {
+                        moved = true;
+                    }
                 }
-            }
-            else if(cursors.up.isDown || game.input.keyboard.isDown(Phaser.Keyboard.W))
-            {
-                player.body.velocity.y = SPEED * -1;
-                player.animations.play('up');
-                if(!moved)
+                if(cursors.up.isDown || game.input.keyboard.isDown(Phaser.Keyboard.W))
                 {
-                    moved = true;
+                    player.body.velocity.y = SPEED * -1;
+                    player.animations.play('up');
+                    if(!moved)
+                    {
+                        moved = true;
+                    }
                 }
-            }
-            else if(cursors.down.isDown || game.input.keyboard.isDown(Phaser.Keyboard.S))
-            {
-                player.body.velocity.y = SPEED;
-                player.animations.play('down');
-                if(!moved)
-                  {
-                    moved = true;
-                  }
+                if(cursors.down.isDown || game.input.keyboard.isDown(Phaser.Keyboard.S))
+                {
+                    player.body.velocity.y = SPEED;
+                    player.animations.play('down');
+                    if(!moved)
+                      {
+                        moved = true;
+                      }
+                }
             }
             else
             {
@@ -438,15 +458,24 @@ Day.prototype = {
                 player.body.velocity.x = 0;
                 player.body.velocity.y = 0;
             }
+
         }
         else //deals with dialogue when text sequence is active
         {
             if(game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR))
             {
-                activeText = false;
-                while(textObj.alpha >= 0)
+                if(numFound == inRange.length)
                 {
-                    textObj.alpha -= .025;
+                    textObj.text = 'Looks like you\'ve found everything worth seeing here.\nLet\'s talk tonight. You know where to meet me.\n\n(Press X to continue.)';
+                }
+                else
+                {
+                    activeText = false;
+                    textbar2.alpha = 0;
+                    while(textObj.alpha >= 0)
+                    {
+                        textObj.alpha -= .025;
+                    }
                 }
             }
         }
@@ -479,28 +508,52 @@ Day.prototype = {
              {
                  activeText = true;
                  textObj.alpha = 1;
-                 textObj.fill = '#000'
+                 textObj.fill = '#FFF'
                  this.obj1(textObj);
-                 found[0] = true;
+                 if(found[0] == false)
+                 {
+                     numFound++;
+                     found[0] = true;
+                 }
              }
              else if(inRange[1])
              {
                  activeText = true;
                  textObj.alpha = 1;
-                 textObj.fill = '#000'
+                 textObj.fill = '#FFF'
                  this.obj2(textObj);
-                 found[1] = true;
+                 if(found[1] == false)
+                 {
+                    numFound++;
+                    found[1] = true;
+                 }
              }
              else if(inRange[2])
              {
                  activeText = true;
                  textObj.alpha = 1;
-                 textObj.fill = '#000'
+                 textObj.fill = '#FFF'
                  this.obj3(textObj);
-                 found[2] = true;
+                 if(found[2] == false)
+                 {
+                     numFound++;
+                     found[2] = true;
+                 }
+             }
+             else if(inRange[3])
+             {
+                 activeText = true;
+                 textObj.alpha = 1;
+                 textObj.fill = '#FFF'
+                 this.obj4(textObj);
+                 if(found[3] == false)
+                 {
+                     numFound++;
+                     found[3] = true;
+                 }
              }
          }
-    
+    game.debug.spriteInfo(player, 10, 10);
     },
     
 isInRange: function(player, obj)
@@ -520,25 +573,44 @@ isInRange: function(player, obj)
     
 obj1: function(textObj)
     {
+        textbar2.x = game.camera.x;
+        textbar2.y = game.camera.y + 400
+        textbar2.alpha = 1;
         textObj.alpha = 1;
-        textObj.x = game.camera.x;
-        textObj.y = game.camera.y + 350;
-        textObj.text = 'You hit avocado 1\nPress space to clear.';
+        textObj.x = game.camera.x + 5;
+        textObj.y = game.camera.y + 410;
+        textObj.text = 'It looks like Decard made a copy of... medical bills? That\'s odd.\nWhy are there so many of them?\n\n(Press space to close.)';
     },
     
 obj2: function()
     {
+        textbar2.x = game.camera.x;
+        textbar2.y = game.camera.y + 400
+        textbar2.alpha = 1;
         textObj.alpha = 1;
-        textObj.x = game.camera.x;
-        textObj.y = game.camera.y + 350;
-        textObj.text = 'You hit avocado 2\nPress space to clear.';
+        textObj.x = game.camera.x + 5;
+        textObj.y = game.camera.y + 410;
+        textObj.text = 'There\s a list of past employees of the month.\nDecard is the only one not on it.\n\n\n(Press space to close.)';
     },
 obj3: function()
     {
+        textbar2.x = game.camera.x;
+        textbar2.y = game.camera.y + 400
+        textbar2.alpha = 1;
         textObj.alpha = 1;
-        textObj.x = game.camera.x;
-        textObj.y = game.camera.y + 350;
-        textObj.text = 'You hit avocado 3\nPress space to clear.';
+        textObj.x = game.camera.x + 5;
+        textObj.y = game.camera.y + 410;
+        textObj.text = 'Decard? Pfft. How a guy like that still has a job is beyond me.\nWish I could get away with coming in late and leaving early as\noften as he does.\n\n(Press space to close.)';
+    },
+obj4: function()
+    {
+        textbar2.x = game.camera.x;
+        textbar2.y = game.camera.y + 400
+        textbar2.alpha = 1;
+        textObj.alpha = 1;
+        textObj.x = game.camera.x + 5;
+        textObj.y = game.camera.y + 410;
+        textObj.text = 'Decard\'s desk is such a mess.\n\n\n(Press space to close.)';
     }
 }
     
