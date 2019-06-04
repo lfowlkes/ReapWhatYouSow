@@ -32,8 +32,8 @@ Menu.prototype = {
         game.load.image('npc1', 'assets/img/npc1.png');
         game.load.image('desk', 'assets/img/desk.png');
         game.load.spritesheet('player', 'assets/img/player.png', 32, 32);
-        /*game.load.tilemap('officemap', 'assets/img/officetest.json', null, Phaser.Tilemap.TILED_JSON);
-        game.load.image('tiles', 'assets/img/officetest.png', 75, 35);*/
+        game.load.tilemap('offmap', 'assets/img/onetilesheet.json', null, Phaser.Tilemap.TILED_JSON);
+        game.load.image('officetile', 'assets/img/officetest4 - Copy.png');
         
         //Source: https://freesound.org/people/timgormly/sounds/170142/
         game.load.audio('textaud', 'assets/audio/temptextsound.mp3');
@@ -329,21 +329,33 @@ Day.prototype = {
         game.physics.startSystem(Phaser.Physics.ARCADE);
         game.stage.backgroundColor = '#000'; // sets background color
         game.world.setBounds(0, 0, 2000, 934);
-        daybg = game.add.sprite(0, 0, 'daybg');
-        daybg.alpha = 0;
-        /*officetmap = game.add.tilemap('officemap');
-        map.addTilesetImage('officetest.png', 'tiles');*/
+        map = game.add.tilemap('offmap');
+        map.addTilesetImage('officetest4 - Copy', 'officetile');
+        
+        floors = map.createLayer('floorss');
+        objects = map.createLayer('objects');
+        walls = map.createLayer('walls');
+        floors.resizeWorld();
+        objects.resizeWorld();
+        walls.resizeWorld();
+        objects.debug = true;
+        map.setCollisionBetween(0, 10501, true, 'walls');
+        map.setCollisionBetween(0, 130491, true, 'objects');
+        
+        daybg = game.add.sprite(0, 0, 'textbar'); daybg.scale.setTo(10,10);
+        daybg.alpha = 1;
         this.officebgm = game.add.audio('officebgm');
         if(musicOff = false)
         {
             this.officebgm.play('', 0, .5, true);
         }
-        player = game.add.sprite(250, 305, 'player');
+        //default: 250 x 350ish
+        player = game.add.sprite(1152, 605, 'player');
         textbar = game.add.sprite(0, 432, 'textbar');
         textbar2 = game.add.sprite(-100, -100, 'textbar');
         textbar.scale.setTo(1.5, 1.5);
         textbar2.scale.setTo(2, 1.5);
-        player.scale.setTo(2,2);
+        //player.scale.setTo(1.5,1.5);
         game.physics.arcade.enable(player);
         player.animations.add('left', [4, 3, 4, 5], 10, true);
         player.animations.add('right', [7, 6, 7, 8], 10, true);
@@ -363,11 +375,11 @@ Day.prototype = {
         /***** Interaction objects *****/
         objs = game.add.group();
         objs.enableBody = true;
-        /*0*/copymach = objs.create(1922, 591, 'copmac');
+        /*0*/copymach = objs.create(2315, 724, 'copmac');
         copymach.scale.setTo(1.2, 1.2);
-        /*1*/board = objs.create(386, 560, 'board'); board.scale.setTo(.8, .8);
+        /*1*/board = objs.create(460, 674, 'board'); board.scale.setTo(1, 1);
         /*2*/npc1 = objs.create(1847, 165, 'npc1'); npc1.scale.setTo(1.5,1.5);
-        /*3*/desk = objs.create(835, 480, 'desk'); desk.scale.setTo(.3, .3); desk.alpha = 0;
+        /*3*/desk = objs.create(950, 580, 'desk'); desk.scale.setTo(.75, .5); desk.alpha = 0;
         copymach.body.immovable = true;
         board.body.immovable = true;
         npc1.body.immovable = true;
@@ -377,7 +389,7 @@ Day.prototype = {
         trig1 = trigKeys.create(copymach.x+10, copymach.y - 30, 'ekey'); trig1.alpha = 0;
         trig2 = trigKeys.create(board.x+20, board.y-30, 'ekey'); trig2.alpha = 0;
         trig3 = trigKeys.create(npc1.x+5, npc1.y-30, 'ekey'); trig3.alpha = 0;
-        trig4 = trigKeys.create(desk.x+15, desk.y-30, 'ekey'); trig4.alpha = 0;
+        trig4 = trigKeys.create(desk.x+75, desk.y-30, 'ekey'); trig4.alpha = 0;
         found = [false, false, false, false];
         numFound = 0;
         inRange = [false, false, false, false]; //array of booleans testing if player is within range of NPC/O
@@ -387,17 +399,17 @@ Day.prototype = {
     
     update: function() {
         // Fade in BG
-        if(daybg.alpha < 1)
+        if(daybg.alpha > 0)
         {
-            daybg.alpha += .025;
+            daybg.alpha -= .025;
         }
-        else if(daybg.alpha >= 1 && counter % 2 == 0 && !moved && i <= msg.length)
+        else if(daybg.alpha < 1 && counter % 2 == 0 && !moved && i <= msg.length)
         {
             textObj.text = msg.substr(0, i);
             i++;
             counter++;
         }
-        else if(daybg.alpha >= 1 && !moved)
+        else if(daybg.alpha < 1 && !moved)
         {
             counter++;
         }
@@ -408,16 +420,19 @@ Day.prototype = {
             textbar.alpha -= .025;
         }
         game.camera.follow(player, Phaser.Camera.FOLLOW_TOPDOWN);
-        //textbar.x = game.camera.x; textbar.y = game.camera.y + 286;
+        game.physics.arcade.collide(player, walls);
+        game.physics.arcade.collide(player, objects);
         //lets the player move with WASD or arrow keys
         if(!activeText) //deals with player movement, but only if they're not in the middle of a text sequence
         {
             // Checks of amy key is pressed, formatted in this terrible way for diagonal movement
+            //Except now we don't want diagonal movement but I'm too afraid of breaking things to change this too much so we're just gonna hacky fix that. Maybe I'll come back and make this prettier later
             if(cursors.left.isDown || game.input.keyboard.isDown(Phaser.Keyboard.A) ||cursors.right.isDown || game.input.keyboard.isDown(Phaser.Keyboard.D) || cursors.up.isDown || game.input.keyboard.isDown(Phaser.Keyboard.W) || cursors.down.isDown || game.input.keyboard.isDown(Phaser.Keyboard.S))
             {
                 if(cursors.left.isDown || game.input.keyboard.isDown(Phaser.Keyboard.A))
                 {
                     player.body.velocity.x = SPEED * -1;
+                    player.body.velocity.y = 0;
                     player.animations.play('left');
                     if(!moved)
                     {
@@ -427,6 +442,7 @@ Day.prototype = {
                 if(cursors.right.isDown || game.input.keyboard.isDown(Phaser.Keyboard.D))
                 {
                     player.body.velocity.x = SPEED;
+                    player.body.velocity.y = 0;
                     player.animations.play('right');
                     if(!moved)
                     {
@@ -436,6 +452,7 @@ Day.prototype = {
                 if(cursors.up.isDown || game.input.keyboard.isDown(Phaser.Keyboard.W))
                 {
                     player.body.velocity.y = SPEED * -1;
+                    player.body.velocity.x = 0;
                     player.animations.play('up');
                     if(!moved)
                     {
@@ -445,6 +462,7 @@ Day.prototype = {
                 if(cursors.down.isDown || game.input.keyboard.isDown(Phaser.Keyboard.S))
                 {
                     player.body.velocity.y = SPEED;
+                    player.body.velocity.x = 0;
                     player.animations.play('down');
                     if(!moved)
                       {
@@ -560,7 +578,7 @@ isInRange: function(player, obj)
     {
         x = Math.abs(player.x - obj.x);
         y = Math.abs(player.y - obj.y);
-        DIFF = 75;
+        DIFF = 200;
         if(x <= DIFF && y <= DIFF)
         {
             return true;
