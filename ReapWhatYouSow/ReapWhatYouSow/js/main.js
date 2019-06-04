@@ -350,7 +350,7 @@ Day.prototype = {
             this.officebgm.play('', 0, .5, true);
         }
         //default: 250 x 350ish
-        player = game.add.sprite(1152, 605, 'player');
+        player = game.add.sprite(250, 350, 'player');
         textbar = game.add.sprite(0, 432, 'textbar');
         textbar2 = game.add.sprite(-100, -100, 'textbar');
         textbar.scale.setTo(1.5, 1.5);
@@ -375,10 +375,10 @@ Day.prototype = {
         /***** Interaction objects *****/
         objs = game.add.group();
         objs.enableBody = true;
-        /*0*/copymach = objs.create(2315, 724, 'copmac');
+        /*0*/copymach = objs.create(2315, 722, 'copmac');
         copymach.scale.setTo(1.2, 1.2);
         /*1*/board = objs.create(460, 674, 'board'); board.scale.setTo(1, 1);
-        /*2*/npc1 = objs.create(1847, 165, 'npc1'); npc1.scale.setTo(1.5,1.5);
+        /*2*/npc1 = objs.create(1970, 214, 'npc1'); npc1.scale.setTo(1.5,1.5);
         /*3*/desk = objs.create(950, 580, 'desk'); desk.scale.setTo(.75, .5); desk.alpha = 0;
         copymach.body.immovable = true;
         board.body.immovable = true;
@@ -434,40 +434,29 @@ Day.prototype = {
                     player.body.velocity.x = SPEED * -1;
                     player.body.velocity.y = 0;
                     player.animations.play('left');
-                    if(!moved)
-                    {
-                        moved = true;
-                    }
                 }
                 if(cursors.right.isDown || game.input.keyboard.isDown(Phaser.Keyboard.D))
                 {
                     player.body.velocity.x = SPEED;
                     player.body.velocity.y = 0;
                     player.animations.play('right');
-                    if(!moved)
-                    {
-                        moved = true;
-                    }
                 }
                 if(cursors.up.isDown || game.input.keyboard.isDown(Phaser.Keyboard.W))
                 {
                     player.body.velocity.y = SPEED * -1;
                     player.body.velocity.x = 0;
                     player.animations.play('up');
-                    if(!moved)
-                    {
-                        moved = true;
-                    }
+                    
                 }
                 if(cursors.down.isDown || game.input.keyboard.isDown(Phaser.Keyboard.S))
                 {
                     player.body.velocity.y = SPEED;
                     player.body.velocity.x = 0;
                     player.animations.play('down');
-                    if(!moved)
-                      {
-                        moved = true;
-                      }
+                }
+                if(!moved)
+                {
+                    moved = true;
                 }
             }
             else
@@ -504,6 +493,11 @@ Day.prototype = {
         {
             game.state.start('Battle');
             this.officebgm.stop();
+        }
+        
+        if(game.input.keyboard.isDown(Phaser.Keyboard.R))
+        {
+            player.x = 320; player.y = 490;
         }
         
         /*** Handles interacting with objs ***/
@@ -578,7 +572,7 @@ isInRange: function(player, obj)
     {
         x = Math.abs(player.x - obj.x);
         y = Math.abs(player.y - obj.y);
-        DIFF = 200;
+        DIFF = 100;
         if(x <= DIFF && y <= DIFF)
         {
             return true;
