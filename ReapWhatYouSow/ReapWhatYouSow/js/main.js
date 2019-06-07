@@ -7,7 +7,7 @@ var game = new Phaser.Game(800, 560, Phaser.AUTO, 'phaser');
 
 
 var name = ''; // the name of the character, inputted later by player
-var musicOff = false; //if the player wants music on
+var musicOn = true; //if the player wants music on
 var soundOn = true; // if the player wants sound effects on
 
 var Menu = function(game) {};
@@ -18,14 +18,13 @@ Menu.prototype = {
         game.load.image('office', 'assets/img/tempoffice.png');
         game.load.image('daybg', 'assets/img/officetest.png');
         game.load.image('textbar', 'assets/img/textbar.png');
-        game.load.image('avocado', 'assets/img/avocado.png');
         game.load.image('titletext', 'assets/img/titletext.png');
         game.load.image('opttext', 'assets/img/opttext.png');
         game.load.image('playtext', 'assets/img/playtext.png');
         game.load.image('creditstext', 'assets/img/creditstext.png');
         game.load.image('quittext', 'assets/img/quittext.png');
         game.load.image('housebg', 'assets/img/temphouse.png');
-        game.load.image('ally', 'assets/img/allytemp.png');
+        game.load.image('ally', 'assets/img/ally.png');
         game.load.image('ekey', 'assets/img/ekey.png');
         game.load.image('copmac', 'assets/img/copymachine.png');
         game.load.image('board', 'assets/img/board.png');
@@ -41,8 +40,6 @@ Menu.prototype = {
         game.load.audio('officebgm', 'assets/audio/tempofficebgm.mp3');
         //Source: https://soundimage.org/dark-ominous/ - into the haunted forest
         game.load.audio('menubgm', 'assets/audio/menubgm.mp3');
-        
-        game.load.image('temp', 'assets/img/tempalert.png');
     },
     create: function() { // Loads menu & instructions
         game.stage.backgroundColor = '#000000'; // sets background color
@@ -58,10 +55,9 @@ Menu.prototype = {
         quittext.scale.setTo(.75, .75); quittext.alpha = 0; quittext.inputEnabled = true;
         ALPHARATE = .03; //Rate at which things fade in/out
         this.menubgm = game.add.audio('menubgm');
-        console.log(musicOff);
-        if(musicOff = false)
+        if(musicOn == true)
         {
-           console.log(musicOff);
+           console.log(musicOn);
            this.menubgm.play('', 0, .5, true);
         }
     },
@@ -169,17 +165,21 @@ Intro.prototype = {
         /*1*/"You're the temp I hired, right? Your buddy came in earlier.",
         /*2*/"Sorry, remind me of your name again?",
         /*3*/"This is a line that will never be used",
-        /*4*/"It's a pleasure meeting you, " + name + ".",
-        /*5*/"We spoke on the phone, but I'll debrief you once more:",
-        /*6*/"I suspect one of my employees, Bob, has been skimming funds\nfrom this company.",
-        /*7*/"I want you to find enough evidence to prove that he's indeed\nbehind this.",
-        /*8*/"Feel free to talk to his coworkers or search the office\nfor information.",
-        /*9*/"As far as my other employees are concerned, you're our\nnew research analyst.",
-        /*10*/"Your boss spoke very highly of you -— Don't let me down."
+        /*4*/"My name is " + name + ".",
+        /*5*/"It's a pleasure meeting you, " + name + ".",
+        /*6*/"We spoke on the phone, but I'll debrief you once more:",
+        /*7*/"I suspect one of my employees, Bob, has been skimming funds\nfrom this company.",
+        /*8*/"And you or your management aren't investigating this yourselves...\nwhy?",
+        /*9*/"I can't go looking into it myself; my employees already resent me\nenough as it is, and my managers already have their hands full.",
+        /*10*/"I want you to find enough evidence to prove that he's indeed\nbehind this.",
+        /*11*/"Feel free to talk to his coworkers or search the office\nfor information.",
+        /*12*/"As far as my other employees are concerned, you're our\nnew research analyst.",
+        /*13*/"Your boss spoke very highly of you -— Don't let me down.",
+        /*14*/"Ha, I'm sure he did. You got it, chief."
                      ];
         ///////////
-        this.pcSprite = [87]; //array of all line #s that need PC sprite on screen
-        this.bossSprite = [0, 1, 2, 5]; //array of all line #s that need the boss sprite on screen
+        this.pcSprite = [4, 8, 14]; //array of all line #s that need PC sprite on screen
+        this.bossSprite = [0, 1, 2, 5, 6, 7, 8, 10, 11, 12, 13]; //array of all line #s that need the boss sprite on screen
         this.textObj = game.add.text(10, 420, 'wow', { font: '20px Courier New', fill: '#FFF'}); //Text object used for displying typewriter script text
         this.progtextObj = game.add.text(670, 535, '', { font: '15px Courier New', fill: '#FFF', align: 'right'});
         this.index = 0; //which line of the script we're pulling from
@@ -197,7 +197,7 @@ Intro.prototype = {
         game.stage.backgroundColor = '#000'; // sets background color
         /* Plugin source: https://github.com/azerion/phaser-input*/
         this.input = game.add.plugin(PhaserInput.Plugin)
-        pc = game.add.sprite(-5, 90, 'PC');
+        pc = game.add.sprite(162, 116, 'PC'); pc.scale.setTo(-.3, .3);
         boss = game.add.sprite(660, 200, 'boss');
         pc.alpha = 0;
         this.textaud = game.add.audio('textaud');
@@ -231,19 +231,22 @@ Intro.prototype = {
             this.counter = 0;
             if(this.pcSprite.includes(this.index)) //checks if we're on a line that needs the PC sprite on screen
             {
+                console.log('pc');
                 pc.alpha = 1;
                 boss.alpha = 0;
             }
             else // we're on a line that needs boss' sprite on screen
             {
+                console.log('no pc: ' + this.index);
                 pc.alpha = 0;
                 boss.alpha = 1;
             }
             }
         }
         //TODO: remove dev cheat skip key
-        if(office.alpha <= 0 || game.input.keyboard.justPressed(Phaser.Keyboard.X))
+        if((office.alpha <= 0 || game.input.keyboard.justPressed(Phaser.Keyboard.X)) && this.index != 3)
         {
+            
             game.state.start('Day');
         }
         else if(this.index >= this.msgs.length)
@@ -307,7 +310,13 @@ Intro.prototype = {
            inputBox.destroy(); //destroys the textbox
            this.inputCreated = false; //we no longer have an active textbox, so false
            this.index++; //advances to the next line of dialogue
-           this.msgs[4] = "It's a pleasure meeting you, " + name +"."; //updates the script with next name
+           this.msgs[4] = "My name is " + name + ".";
+           this.msgs[5] = "It's a pleasure meeting you, " + name +"."; //updates the script with next name
+           if(this.index == 4)
+            {
+                pc.alpha = 1;
+                boss.alpha = 0;
+            }
            }
     },
     // Moderately unnecessary function for typewriter text display, but it looks nice to have things as their own function so I made this.
@@ -325,73 +334,74 @@ Day.prototype = {
     
 
     create: function() { //Creates the day stage
-        cursors = game.input.keyboard.createCursorKeys();
-        game.physics.startSystem(Phaser.Physics.ARCADE);
+        cursors = game.input.keyboard.createCursorKeys(); //creates arrow key tracking
+        game.physics.startSystem(Phaser.Physics.ARCADE); //turns on arcade physics
         game.stage.backgroundColor = '#000'; // sets background color
-        game.world.setBounds(0, 0, 2000, 934);
-        map = game.add.tilemap('offmap');
-        map.addTilesetImage('officetest4 - Copy', 'officetile');
+        game.world.setBounds(0, 0, 2000, 934); //sets world bounds
         
-        floors = map.createLayer('floorss');
-        objects = map.createLayer('objects');
-        walls = map.createLayer('walls');
-        floors.resizeWorld();
+        map = game.add.tilemap('offmap'); //creates tilemaps
+        map.addTilesetImage('officetest4 - Copy', 'officetile'); //add tiles
+        floors = map.createLayer('floorss'); //create floor layer
+        objects = map.createLayer('objects'); //create object layer
+        walls = map.createLayer('walls'); //create wall layer
+        floors.resizeWorld(); //resizes map to world bounds
         objects.resizeWorld();
         walls.resizeWorld();
-        objects.debug = true;
-        map.setCollisionBetween(0, 10501, true, 'walls');
-        map.setCollisionBetween(0, 130491, true, 'objects');
+        //collision debug
+        //objects.debug = true;
+        map.setCollisionBetween(0, 10501, true, 'walls'); //enables collisions on walls layer
+        map.setCollisionBetween(0, 130491, true, 'objects'); //enables collisions with object layer
         
-        daybg = game.add.sprite(0, 0, 'textbar'); daybg.scale.setTo(10,10);
-        daybg.alpha = 1;
+        daybg = game.add.sprite(0, 0, 'textbar'); daybg.scale.setTo(10,10); //background for fade
+        daybg.alpha = 1; //sets opacity to 100%
         this.officebgm = game.add.audio('officebgm');
-        if(musicOff = false)
+        if(musicOn == true) //only adds BGM if music option is enabled
         {
             this.officebgm.play('', 0, .5, true);
         }
-        //default: 250 x 350ish
-        player = game.add.sprite(250, 350, 'player');
-        textbar = game.add.sprite(0, 432, 'textbar');
-        textbar2 = game.add.sprite(-100, -100, 'textbar');
-        textbar.scale.setTo(1.5, 1.5);
+        //default: 314 x 426ish
+        player = game.add.sprite(314, 426, 'player'); //adds player sprite
+        textbar = game.add.sprite(0, 532, 'textbar'); //adds background for text
+        textbar2 = game.add.sprite(-100, -100, 'textbar'); //second text bar for interaction text
+        textbar.scale.setTo(1.5, 1.5); //resizes text bar
         textbar2.scale.setTo(2, 1.5);
-        //player.scale.setTo(1.5,1.5);
-        game.physics.arcade.enable(player);
-        player.animations.add('left', [4, 3, 4, 5], 10, true);
-        player.animations.add('right', [7, 6, 7, 8], 10, true);
-        player.animations.add('up', [10, 9, 10, 11], 10, true);
-        player.animations.add('down', [1, 0, 1, 2], 10, true);
+        player.scale.setTo(1.5,1.5);
+        game.physics.arcade.enable(player); //turns on player physics
+        player.animations.add('left', [4, 3, 4, 5], 10, true); //left walking animation
+        player.animations.add('right', [7, 6, 7, 8], 10, true); //right walking animation
+        player.animations.add('up', [10, 9, 10, 11], 10, true); //up walking animation
+        player.animations.add('down', [1, 0, 1, 2], 10, true); //down walking animation
         //player.enableBody = true;
-        player.body.collideWorldBounds = true;
+        player.body.collideWorldBounds = true; //enables player collisions
         i = 0; //placeholder for typewriter
-        textObj = game.add.text(10, 445, '', { font: '20px Courier New', fill: '#FFF'});
-        msg = 'You can move around the office using the arrow keys or WASD.';
+        textObj = game.add.text(10, 545, '', { font: '20px Courier New', fill: '#FFF'}); //text object for dialogue
+        msg = 'You can move around the office using the arrow keys or WASD.'; //intro message
         counter = 0; // frame counter
         moved = false; // checks if the move message was destroyed yet
         activeText = false; //checks if the user is in the middle of a dialogue spot
         
-        SPEED = 150; //dev speed constant, default is 100
+        SPEED = 150; //dev speed constant, default is 150
 
         /***** Interaction objects *****/
-        objs = game.add.group();
-        objs.enableBody = true;
-        /*0*/copymach = objs.create(2315, 722, 'copmac');
-        copymach.scale.setTo(1.2, 1.2);
-        /*1*/board = objs.create(460, 674, 'board'); board.scale.setTo(1, 1);
-        /*2*/npc1 = objs.create(1970, 214, 'npc1'); npc1.scale.setTo(1.5,1.5);
-        /*3*/desk = objs.create(950, 580, 'desk'); desk.scale.setTo(.75, .5); desk.alpha = 0;
-        copymach.body.immovable = true;
-        board.body.immovable = true;
-        npc1.body.immovable = true;
-        desk.body.immovable = true;
-        game.physics.arcade.enable(objs);
-        trigKeys = game.add.group();
-        trig1 = trigKeys.create(copymach.x+10, copymach.y - 30, 'ekey'); trig1.alpha = 0;
-        trig2 = trigKeys.create(board.x+20, board.y-30, 'ekey'); trig2.alpha = 0;
-        trig3 = trigKeys.create(npc1.x+5, npc1.y-30, 'ekey'); trig3.alpha = 0;
-        trig4 = trigKeys.create(desk.x+75, desk.y-30, 'ekey'); trig4.alpha = 0;
-        found = [false, false, false, false];
-        numFound = 0;
+        objs = game.add.group(); //creates group for interaction sprites
+        objs.enableBody = true; //enables intraction sprite body
+        /*0*/copymach = objs.create(2315, 722, 'copmac'); //sprite for copy machine
+        copymach.scale.setTo(1.2, 1.2); //resizes copy machine
+        /*1*/board = objs.create(460, 700, 'board'); board.scale.setTo(1, 1); board.alpha = 0; //sprite for bulletin board
+        /*2*/npc1 = objs.create(1970, 214, 'npc1'); npc1.scale.setTo(1.5,1.5); //sprite for office npc
+        /*3*/desk = objs.create(1000, 480, 'desk'); desk.scale.setTo(.5, .5); desk.alpha = 0; //sprite for desk
+        copymach.body.immovable = true; //stops player from moving copy machine
+        board.body.immovable = true; //stops player from moving bulletin board
+        npc1.body.immovable = true; // stops player from moving npc
+        desk.body.immovable = true; //stops player from moving desk
+        game.physics.arcade.enable(objs); //turns on arcade physics for objects
+        trigKeys = game.add.group(); //creates a group for the indicator icons
+        trig1 = trigKeys.create(copymach.x+10, copymach.y - 30, 'ekey'); trig1.alpha = 0; //icon for copy machine
+        trig2 = trigKeys.create(board.x+30, board.y-60, 'ekey'); trig2.alpha = 0; //icon for bulletin board
+        trig3 = trigKeys.create(npc1.x+5, npc1.y-30, 'ekey'); trig3.alpha = 0; // icon for npc
+        trig4 = trigKeys.create(desk.x+25, desk.y-30, 'ekey'); trig4.alpha = 0; //icon for desk
+        found = [false, false, false, false]; //array of booleans for if an obj has been interacted with yet
+        numFound = 0; //tracks the number of objects that have been found so far
         inRange = [false, false, false, false]; //array of booleans testing if player is within range of NPC/O
         
         
@@ -399,29 +409,29 @@ Day.prototype = {
     
     update: function() {
         // Fade in BG
-        if(daybg.alpha > 0)
+        if(daybg.alpha > 0) //fade in effect to scene
         {
             daybg.alpha -= .025;
         }
-        else if(daybg.alpha < 1 && counter % 2 == 0 && !moved && i <= msg.length)
+        else if(daybg.alpha < 1 && counter % 2 == 0 && !moved && i <= msg.length) //typewriter effect for tutorial text
         {
             textObj.text = msg.substr(0, i);
             i++;
             counter++;
         }
-        else if(daybg.alpha < 1 && !moved)
+        else if(daybg.alpha < 1 && !moved) //increments only if player hasn't moved yet
         {
             counter++;
         }
         
-        if(moved && textbar.alpha >= 0)
+        if(moved && textbar.alpha >= 0) //fades out text once the player moved
         {
             textObj.alpha -= .025;
             textbar.alpha -= .025;
         }
-        game.camera.follow(player, Phaser.Camera.FOLLOW_TOPDOWN);
-        game.physics.arcade.collide(player, walls);
-        game.physics.arcade.collide(player, objects);
+        game.camera.follow(player, Phaser.Camera.FOLLOW_TOPDOWN); //sets the camera to follow the player
+        game.physics.arcade.collide(player, walls); //enables collisions between player and walls
+        game.physics.arcade.collide(player, objects); //enables collisions between player and objects
         //lets the player move with WASD or arrow keys
         if(!activeText) //deals with player movement, but only if they're not in the middle of a text sequence
         {
@@ -429,37 +439,37 @@ Day.prototype = {
             //Except now we don't want diagonal movement but I'm too afraid of breaking things to change this too much so we're just gonna hacky fix that. Maybe I'll come back and make this prettier later
             if(cursors.left.isDown || game.input.keyboard.isDown(Phaser.Keyboard.A) ||cursors.right.isDown || game.input.keyboard.isDown(Phaser.Keyboard.D) || cursors.up.isDown || game.input.keyboard.isDown(Phaser.Keyboard.W) || cursors.down.isDown || game.input.keyboard.isDown(Phaser.Keyboard.S))
             {
-                if(cursors.left.isDown || game.input.keyboard.isDown(Phaser.Keyboard.A))
+                if(cursors.left.isDown || game.input.keyboard.isDown(Phaser.Keyboard.A)) //left mvoement
                 {
                     player.body.velocity.x = SPEED * -1;
                     player.body.velocity.y = 0;
                     player.animations.play('left');
                 }
-                if(cursors.right.isDown || game.input.keyboard.isDown(Phaser.Keyboard.D))
+                if(cursors.right.isDown || game.input.keyboard.isDown(Phaser.Keyboard.D)) //right movement
                 {
                     player.body.velocity.x = SPEED;
                     player.body.velocity.y = 0;
                     player.animations.play('right');
                 }
-                if(cursors.up.isDown || game.input.keyboard.isDown(Phaser.Keyboard.W))
+                if(cursors.up.isDown || game.input.keyboard.isDown(Phaser.Keyboard.W)) //up movement
                 {
                     player.body.velocity.y = SPEED * -1;
                     player.body.velocity.x = 0;
                     player.animations.play('up');
                     
                 }
-                if(cursors.down.isDown || game.input.keyboard.isDown(Phaser.Keyboard.S))
+                if(cursors.down.isDown || game.input.keyboard.isDown(Phaser.Keyboard.S)) //down movement
                 {
                     player.body.velocity.y = SPEED;
                     player.body.velocity.x = 0;
                     player.animations.play('down');
                 }
-                if(!moved)
+                if(!moved) //sets moved to true once the player moves
                 {
                     moved = true;
                 }
             }
-            else
+            else //stops the animation and velocity when there isn't a key pressed
             {
                 player.animations.stop();
                 player.body.velocity.x = 0;
@@ -469,13 +479,13 @@ Day.prototype = {
         }
         else //deals with dialogue when text sequence is active
         {
-            if(game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR))
+            if(game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) //progresses when player hits to close text
             {
-                if(numFound == inRange.length)
+                if(numFound == inRange.length) //when the player has found all objects
                 {
                     textObj.text = 'Looks like you\'ve found everything worth seeing here.\nLet\'s talk tonight. You know where to meet me.\n\n(Press X to continue.)';
                 }
-                else
+                else //closes the text bar if there are still objects left to find
                 {
                     activeText = false;
                     textbar2.alpha = 0;
@@ -487,15 +497,15 @@ Day.prototype = {
             }
         }
         
-        game.physics.arcade.collide(player, objs);
+        game.physics.arcade.collide(player, objs); //enables collisions between player and interaction sprites
         
-        if(game.input.keyboard.isDown(Phaser.Keyboard.X))
+        if(game.input.keyboard.isDown(Phaser.Keyboard.X)) //starts battle intro when player hits x
         {
-            game.state.start('Battle');
+            game.state.start('BattleIntro');
             this.officebgm.stop();
         }
         
-        if(game.input.keyboard.isDown(Phaser.Keyboard.R))
+        if(game.input.keyboard.isDown(Phaser.Keyboard.R)) //warps player back to the beginning in case they get stuck; DEV TOOL
         {
             player.x = 320; player.y = 490;
         }
@@ -565,14 +575,15 @@ Day.prototype = {
                  }
              }
          }
+        //debug info for sprite
     game.debug.spriteInfo(player, 10, 10);
     },
     
-isInRange: function(player, obj)
+isInRange: function(player, obj) //checks if player is within range of an interaction  sprite
     {
         x = Math.abs(player.x - obj.x);
         y = Math.abs(player.y - obj.y);
-        DIFF = 100;
+        DIFF = 100; //constant value for distance range
         if(x <= DIFF && y <= DIFF)
         {
             return true;
@@ -583,7 +594,7 @@ isInRange: function(player, obj)
         }
     },
     
-obj1: function(textObj)
+obj1: function(textObj) //triggers text for found copy machine
     {
         textbar2.x = game.camera.x;
         textbar2.y = game.camera.y + 400
@@ -594,7 +605,7 @@ obj1: function(textObj)
         textObj.text = 'It looks like Decard made a copy of... medical bills? That\'s odd.\nWhy are there so many of them?\n\n(Press space to close.)';
     },
     
-obj2: function()
+obj2: function() //triggers text for found bulletin board
     {
         textbar2.x = game.camera.x;
         textbar2.y = game.camera.y + 400
@@ -604,7 +615,7 @@ obj2: function()
         textObj.y = game.camera.y + 410;
         textObj.text = 'There\s a list of past employees of the month.\nDecard is the only one not on it.\n\n\n(Press space to close.)';
     },
-obj3: function()
+obj3: function()//triggers text for found npc
     {
         textbar2.x = game.camera.x;
         textbar2.y = game.camera.y + 400
@@ -614,7 +625,7 @@ obj3: function()
         textObj.y = game.camera.y + 410;
         textObj.text = 'Decard? Pfft. How a guy like that still has a job is beyond me.\nWish I could get away with coming in late and leaving early as\noften as he does.\n\n(Press space to close.)';
     },
-obj4: function()
+obj4: function() //triggers text for found desk
     {
         textbar2.x = game.camera.x;
         textbar2.y = game.camera.y + 400
@@ -626,9 +637,9 @@ obj4: function()
     }
 }
     
-var Battle = function(game) {};
-Battle.prototype = {
-    create: function() { //
+var BattleIntro = function(game) {};
+BattleIntro.prototype = {
+    create: function() {
         game.stage.backgroundColor = '#facade'; // sets background color
         house = game.add.sprite(0, 0, 'housebg');
         textbar = game.add.sprite(0, 390, 'textbar');
@@ -636,11 +647,25 @@ Battle.prototype = {
         this.textObj = game.add.text(10, 410, '', { font: '20px Courier New', fill: '#FFF' });
         //All messages to be displayed on screen
         this.msgs = [
-        /*0*/ "Good to see you, " + name + ".",
-        /*1*/ "You again? What are you doing here?",
-        /*2*/ "Same as you; hunting down the trash living here\nwho keeps cheating us out of their death.",
-        /*3*/ "Seriously? You're a Grim Reaper too?",
-        /*4*/ "To be continued..."];
+        /*0*/ "Fancy meeting you tonight, " + name + ".",
+        /*1*/ "It'd be a lot fancier if you'd tell me WHY we're meeting here.\nDon't you think we're awfully conspicuous standing here\noutside Decard's house?",
+        /*2*/ "Nah, I've been staking it out for weeks; nobody so much as opens\na curtain around this place.",
+        /*3*/ "Weeks? We only got the assignment last night!",
+        /*4*/ "Correction: YOU only got the assignment last night.\nHQ has had me investigating for awhile now.",
+        /*5*/ "Then why was today the first day we looked into his work life?",
+        /*6*/ "Wasn't relevant to the case before. Found out on Thursday that\nDecard\'s boss was getting suspicious. HQ had to pull some strings\nto make sure we were the ones he called before he could start\nasking questions.",
+        /*7*/ "And now that we've investigated, what happens now?",
+        /*8*/ "What happens now is that we finish the job.",
+        /*9*/ "... You mean... kill...?",
+        /*10*/ "No I mean we pack some swimsuits and ship 'em off to Bora Bora.\nYes, I mean kill. Specifically, YOU kill.",
+        /*11*/ "Me?! I...-",
+        /*12*/ "\"I\" what? Welcome to being a Grim Reaper sweetheart. This is\nthe job. Consider it your initiation.",
+        /*13*/ "I know it's the job, I just thought we'd have more information\nbefore we started killing people! What did this bloke do anyway?",
+        /*14*/ "Not our job to ask. When HQ tells us someone is evading their\ndeath, our only job is to go in and set the situation right.",
+        /*15*/ "Let me give you some advice, sweetheart: In our line of work,\nif you don't waste the target, HQ wastes you. So unless\nyou're interested in ending up with a scythe in your back,\nI suggest you get it together and get the job done.",
+        /*16*/ "But shouldn't I-",
+        /*17*/ "Look, enough stalling. Get in there and do it already. I'll stay\nout here and stand guard."
+                     ];
         this.index = 0; //which line of msg array we're on
         this.i = 0; //which letter of line we're on
         this.counter = 0; //frame counter for text delay
@@ -648,10 +673,10 @@ Battle.prototype = {
         this.textaud = game.add.audio('textaud');
         pc = game.add.sprite(640, 108, 'PC');
         pc.scale.setTo(.3, .3);
-        ally = game.add.sprite(-5, 190, 'ally');
+        ally = game.add.sprite(152, 116, 'ally'); ally.scale.setTo(-.125, .125);
         pc.alpha = 0; //pc.scale.x = -1;
-        this.pcSprite = [1, 3]; //array of all line #s that need PC sprite on screen
-        this.allySprite = [0, 2]; //array of all line #s that need the ally sprite on screen
+        this.pcSprite = [1, 3, 5, 7, 9, 11, 13, 16]; //array of all line #s that need PC sprite on screen
+        this.allySprite = [0, 2, 4, 6, 8, 10, 12, 14, 15, 17]; //array of all line #s that need the ally sprite on screen
         
     },
     
@@ -689,8 +714,9 @@ Battle.prototype = {
                 }
                 
             }
+        
             
-        if(this.index < this.msgs.length && this.counter % 2 == 0) //displays each letter every 2 frames
+        if(this.index < this.msgs.length)
         {
             if(this.i <= this.msgs[this.index].length)
             {
@@ -717,15 +743,41 @@ Battle.prototype = {
         //console.log(msg);
         textObj.text = msg.substr(0, i);
         if(this.counter % 4 == 0)
-            this.textaud.play('', 0, .125, false);
+            this.textaud.play('', 0, .07, false);
     }
 }
 
+var Battle = function(game) {};
+Battle.prototype = {
+create: function() {
+}
+}
 
+var BeatAlly = function(game) {};
+BeatAlly.prototype = {
+create: function() {
+}
+}
+
+var BeatAngel = function(game) {};
+BeatAngel.prototype = {
+create: function() {
+}
+}
+
+var GameOver = function(game) {};
+GameOver.prototype = {
+create: function() {
+}
+}
 
 //Adds game states
 game.state.add('Menu', Menu); //adds intro state
 game.state.add('Intro', Intro); // adds play state
 game.state.add('Day', Day); //adds main menu state
+game.state.add('BattleIntro', BattleIntro); // adds battle intro state
 game.state.add('Battle', Battle); // adds battle state
+game.state.add('BeatAlly', BeatAlly); //adds state for when you beat the Ally
+game.state.add('BeatAngel', BeatAngel); //adds state for when you beat angels
+game.state.add('GameOver', GameOver); //Adds state for when you lose in battle
 game.state.start('Menu'); // starts the game at the main menu
