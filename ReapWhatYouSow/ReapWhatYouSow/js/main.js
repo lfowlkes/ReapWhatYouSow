@@ -33,6 +33,8 @@ Menu.prototype = {
         game.load.spritesheet('player', 'assets/img/player.png', 32, 32);
         game.load.tilemap('offmap', 'assets/img/onetilesheet.json', null, Phaser.Tilemap.TILED_JSON);
         game.load.image('officetile', 'assets/img/officetest4 - Copy.png');
+        game.load.tilemap('housemap', 'assets/img/houseonetilesheet.json', null, Phaser.Tilemap.TILED_JSON);
+        game.load.image('housetile', 'assets/img/house5.png');
         
         //Source: https://freesound.org/people/timgormly/sounds/170142/
         game.load.audio('textaud', 'assets/audio/temptextsound.mp3');
@@ -323,7 +325,7 @@ Intro.prototype = {
     typewriter: function(msg, textObj, i) {
         //console.log(msg);
         textObj.text = msg.substr(0, i);
-        if(this.counter % 4 == 0)
+        if(this.counter % 4 == 0 && soundOn == true)
         this.textaud.play('', 0, .125, false);
     }
     
@@ -682,9 +684,17 @@ BattleIntro.prototype = {
     
     update: function() {
         
+        if(game.input.keyboard.justPressed(Phaser.Keyboard.X))
+        {
+            game.state.start('EnterHouse');
+        }
         if(game.input.keyboard.justPressed(Phaser.Keyboard.SPACEBAR))
             {
-                if(this.i < this.msgs[this.index].length)
+                if(this.index > this.msgs.length)
+                {
+                    gamee.state.start('EnterHouse');
+                }
+                else if(this.i < this.msgs[this.index].length)
                 {
                     this.i = this.msgs[this.index].length;
                     this.textObj.text = this.msgs[this.index];
@@ -742,9 +752,110 @@ BattleIntro.prototype = {
     typewriter: function(msg, textObj, i) {
         //console.log(msg);
         textObj.text = msg.substr(0, i);
-        if(this.counter % 4 == 0)
+        if(this.counter % 4 == 0 && soundOn == true)
             this.textaud.play('', 0, .07, false);
     }
+}
+
+//Is making a whole new stage for this really necessary? Not really. Am I gonna do it anyway? Sure am!
+var EnterHouse = function(game) {};
+EnterHouse.prototype = {
+create: function() {
+    game.world.setBounds(0, 0, 1600, 1120); //sets world bounds //TODO: figure out how big the map actually is lol
+    cursors = game.input.keyboard.createCursorKeys(); //creates arrow key tracking
+    game.physics.startSystem(Phaser.Physics.ARCADE); //enables arcade physics
+    map2 = game.add.tilemap('housemap'); //creates tilemaps
+    map2.addTilesetImage('house5', 'housetile'); //add tiles
+    houseFloors = map2.createLayer('floorsss'); //creates floor layer
+    houseWalls = map2.createLayer('walls'); //creates wall layer
+    inacc = map2.createLayer('unaccesible'); //create layers of inaccessible rooms
+    houseObjs = map2.createLayer('objectsssss'); //create object layer
+    //Resizes tilemap to sixe of game
+    houseFloors.resizeWorld();
+    houseWalls.resizeWorld();
+    inacc.resizeWorld();
+    houseObjs.resizeWorld();
+    map2.setCollisionBetween(0, 45, true, 'walls'); //makes walls collidable
+    map2.setCollisionBetween(0, 650, true, 'unaccesible'); //makes the inaccesible area collidable
+    map2.setCollisionBetween(0, 688, true, 'objectsssss'); //makes object layer collidable
+    
+    player = game.add.sprite(1326, 528, 'player'); //adds player sprite
+    player.scale.setTo(1.5,1.5); //makes sprite smaller
+    game.physics.arcade.enable(player); //enables arcade physics on playre
+    player.animations.add('left', [4, 3, 4, 5], 10, true); //left walking animation
+    player.animations.add('right', [7, 6, 7, 8], 10, true); //right walking animation
+    player.animations.add('up', [10, 9, 10, 11], 10, true); //up walking animation
+    player.animations.add('down', [1, 0, 1, 2], 10, true); //down waling animation
+    
+    cutscene = false;
+    freeze = false; //checks if movement needs to be frozen [during cutscene]
+},
+    
+update: function()
+    {
+        game.physics.arcade.collide(player, houseWalls); //makes player collide with wall layer
+        game.physics.arcade.collide(player, houseObjs); //makes player collide with object layer
+        game.physics.arcade.collide(player, inacc); //makes player collide with inaccessible layer
+        game.camera.follow(player, Phaser.Camera.FOLLOW_TOPDOWN); //sets the camera to follow the player
+        game.debug.spriteInfo(player, 10, 10);
+        //A lot of mumbo jumbo for checking for input movement
+        if((cursors.left.isDown || game.input.keyboard.isDown(Phaser.Keyboard.A) ||cursors.right.isDown || game.input.keyboard.isDown(Phaser.Keyboard.D) || cursors.up.isDown || game.input.keyboard.isDown(Phaser.Keyboard.W) || cursors.down.isDown || game.input.keyboard.isDown(Phaser.Keyboard.S)) && !freeze)
+        {
+            if(cursors.left.isDown || game.input.keyboard.isDown(Phaser.Keyboard.A)) //left mvoement
+            {
+                player.body.velocity.x = SPEED * -1;
+                player.body.velocity.y = 0;
+                player.animations.play('left');
+            }
+            if(cursors.right.isDown || game.input.keyboard.isDown(Phaser.Keyboard.D)) //right movement
+            {
+                player.body.velocity.x = SPEED;
+                player.body.velocity.y = 0;
+                player.animations.play('right');
+            }
+            if(cursors.up.isDown || game.input.keyboard.isDown(Phaser.Keyboard.W)) //up movement
+            {
+                player.body.velocity.y = SPEED * -1;
+                player.body.velocity.x = 0;
+                player.animations.play('up');
+                
+            }
+            if(cursors.down.isDown || game.input.keyboard.isDown(Phaser.Keyboard.S)) //down movement
+            {
+                player.body.velocity.y = SPEED;
+                player.body.velocity.x = 0;
+                player.animations.play('down');
+            }
+        }
+        else //stops the animation and velocity when there isn't a key pressed
+        {
+            player.animations.stop();
+            player.body.velocity.x = 0;
+            player.body.velocity.y = 0;
+        }
+        
+        if(game.input.keyboard.isDown(Phaser.Keyboard.L)) //dev debugger; logs camera position
+        {
+            console.log('Camera position: ' + game.camera.x + ' , ' + game.camera.y);
+        }
+        
+        //triggers cutscene when player gets to specific point
+        if((player.x >= 192 && player.x <= 272) && player.y <= 490 && cutscene == false)
+        {
+            cutscene = true;
+            freeze = true;
+            this.cutsceneCamera(game.camera);
+        }
+    },
+    
+cutsceneCamera: function() {
+    console.log('enter');
+    while(game.camera.y > 172) //moves camera to cutscene position //TODO: make this smoother w/ timer
+    {
+        console.log('movin');
+        game.camera.y -= .5;
+    }
+}
 }
 
 var Battle = function(game) {};
@@ -776,6 +887,7 @@ game.state.add('Menu', Menu); //adds intro state
 game.state.add('Intro', Intro); // adds play state
 game.state.add('Day', Day); //adds main menu state
 game.state.add('BattleIntro', BattleIntro); // adds battle intro state
+game.state.add('EnterHouse', EnterHouse); //adds stage for entering house
 game.state.add('Battle', Battle); // adds battle state
 game.state.add('BeatAlly', BeatAlly); //adds state for when you beat the Ally
 game.state.add('BeatAngel', BeatAngel); //adds state for when you beat angels
