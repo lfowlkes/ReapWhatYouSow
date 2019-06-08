@@ -8,13 +8,14 @@ var game = new Phaser.Game(800, 560, Phaser.AUTO, 'phaser');
 
 var name = ''; // the name of the character, inputted later by player
 var musicOn = true; //if the player wants music on
+var musicPlaying = false;
 var soundOn = true; // if the player wants sound effects on
 
-var Menu = function(game) {};
-Menu.prototype = {
+var MainMenu = function(game) {};
+MainMenu.prototype = {
     
     preload: function() {
-        /* Note that these are all placeholder images as of now and will not exist in the final build*/
+        /* Menu Text */
         game.load.image('office', 'assets/img/tempoffice.png');
         game.load.image('daybg', 'assets/img/officetest.png');
         game.load.image('textbar', 'assets/img/textbar.png');
@@ -23,7 +24,15 @@ Menu.prototype = {
         game.load.image('playtext', 'assets/img/playtext.png');
         game.load.image('creditstext', 'assets/img/creditstext.png');
         game.load.image('quittext', 'assets/img/quittext.png');
-        game.load.image('housebg', 'assets/img/temphouse.png');
+        game.load.image('musictxt', 'assets/img/music.png');
+        game.load.image('soundtxt', 'assets/img/sound.png');
+        game.load.image('on', 'assets/img/on.png');
+        game.load.image('onnoglow', 'assets/img/onnoglow.png');
+        game.load.image('off', 'assets/img/off.png');
+        game.load.image('offnoglow', 'assets/img/offnoglow.png');
+        game.load.image('back', 'assets/img/back.png');
+        
+        /* Office assets */
         game.load.image('ally', 'assets/img/ally.png');
         game.load.image('ekey', 'assets/img/ekey.png');
         game.load.image('copmac', 'assets/img/copymachine.png');
@@ -33,9 +42,13 @@ Menu.prototype = {
         game.load.spritesheet('player', 'assets/img/player.png', 32, 32);
         game.load.tilemap('offmap', 'assets/img/onetilesheet.json', null, Phaser.Tilemap.TILED_JSON);
         game.load.image('officetile', 'assets/img/officetest4 - Copy.png');
+        
+        /* House scene assets */
+        game.load.image('housebg', 'assets/img/temphouse.png');
         game.load.tilemap('housemap', 'assets/img/houseonetilesheet.json', null, Phaser.Tilemap.TILED_JSON);
         game.load.image('housetile', 'assets/img/house5.png');
         
+        /* Sounds */
         //Source: https://freesound.org/people/timgormly/sounds/170142/
         game.load.audio('textaud', 'assets/audio/temptextsound.mp3');
         //Source: https://incompetech.filmmusic.io/song/3930-isolated/
@@ -45,6 +58,7 @@ Menu.prototype = {
     },
     create: function() { // Loads menu & instructions
         game.stage.backgroundColor = '#000000'; // sets background color
+        /* Adds text sprites */
         titletext = game.add.sprite(80, 30, 'titletext');
         titletext.scale.setTo(1, 1); titletext.alpha = 0;
         playtext = game.add.sprite(298, 190, 'playtext');
@@ -56,16 +70,16 @@ Menu.prototype = {
         quittext = game.add.sprite(336, 390, 'quittext');
         quittext.scale.setTo(.75, .75); quittext.alpha = 0; quittext.inputEnabled = true;
         ALPHARATE = .03; //Rate at which things fade in/out
-        this.menubgm = game.add.audio('menubgm');
-        if(musicOn == true)
+        this.menubgm = game.add.audio('menubgm'); //background music
+        if(musicOn == true && musicPlaying == false) //plays music if settings are enabled and it isn't already playing
         {
-           console.log(musicOn);
            this.menubgm.play('', 0, .5, true);
+           musicPlaying = true;
         }
     },
     
     update: function() {
-        game.scale.pageAlignHorizontally = true;
+        game.scale.pageAlignHorizontally = true; //puts game window in center of browser
         game.scale.pageAlignVertically = true;
         
         /**** Fades in text *****/
@@ -94,7 +108,8 @@ Menu.prototype = {
         /***** Scales up on hover *****/
         playtext.events.onInputOver.add(this.hoverPlay, this);
         playtext.events.onInputOut.add(this.stopPlayHover, this);
-        opttext.events.onInputOver.add(this.hoverOpt, this); // for some reason this doesn't work but we'll figure out why later
+        opttext.events.onInputOver.add(this.hoverOpt, this);
+        
         opttext.events.onInputOut.add(this.stopOptHover, this);
         creditstext.events.onInputOver.add(this.hoverCredits, this);
         creditstext.events.onInputOut.add(this.stopCreditsHover, this);
@@ -102,6 +117,8 @@ Menu.prototype = {
         quittext.events.onInputOut.add(this.stopQuitHover, this);
         /**** Handles moving to different screens ****/
         playtext.events.onInputDown.add(this.startPlay, this);
+        opttext.events.onInputDown.add(this.openSettings, this);
+        creditstext.events.onInputDown.add(this.openCredits, this);
     },
     /***** All the functions for handling text hover events *****/
     hoverPlay: function() {
@@ -149,10 +166,179 @@ Menu.prototype = {
         quittext.x += 12;
         quittext.y += 10;
     },
+    openSettings: function() {
+        game.state.start('Settings', true, false, this.menubgm);
+    },
+openCredits: function()
+    {
+        game.state.start('Credits');
+    },
     startPlay: function() {
         game.state.start('Intro');
         this.menubgm.stop();
     }
+}
+
+var Settings = function(game) {};
+Settings.prototype = {
+init: function(bgm)
+    {
+        this.bgm = bgm;
+    },
+create: function() {
+    game.stage.backgroundColor = '#000000'; // sets background color
+    
+    //Adds text sprites
+    optionstext = game.add.sprite(280, 10, 'opttext'); optionstext.scale.setTo(1.25, 1.25);
+    musictxt = game.add.sprite(200, 190, 'musictxt');
+    musictxt.inputEnabled = true;
+    soundtxt = game.add.sprite(115, 315, 'soundtxt');
+    soundtxt.inputEnabled = true;
+    musiconglow = game.add.sprite(400, 190, 'on');
+    musiconglow.inputEnabled = true;
+    musiconnoglow = game.add.sprite(400, 190, 'onnoglow');
+    musiconnoglow.inputEnabled = true;
+    musicoffglow = game.add.sprite(525, 190, 'off');
+    musicoffglow.inputEnabled = true;
+    musicoffnoglow = game.add.sprite(525, 190, 'offnoglow');
+    musicoffnoglow.inputEnabled = true;
+    if(musicOn)
+    {
+        musiconnoglow.alpha = 0;
+        musicoffglow.alpha = 0;
+        musiconglow.alpha = 1;
+        musicoffnoglow.alpga = 1;
+        
+    }
+    else
+    {
+        musiconnoglow.alpha = 1;
+        musicoffglow.alpha = 1;
+        musiconglow.alpha = 0;
+        musicoffnoglow.alpga = 0;
+            
+    }
+    soundonglow = game.add.sprite(400, 315, 'on');
+    soundonglow.inputEnabled = true;
+    soundonnoglow = game.add.sprite(400, 315, 'onnoglow');
+    soundonnoglow.alpha = 0; soundonnoglow.inputEnabled = true;
+    soundoffglow = game.add.sprite(525, 315, 'off');
+    soundoffglow.alpha = 0; soundoffglow.inputEnabled = true;
+    soundoffnoglow = game.add.sprite(525, 315, 'offnoglow');
+    soundoffnoglow.inputEnabled = true;
+    if(soundOn)
+    {
+        soundonnoglow.alpha = 0;
+        soundoffglow.alpha = 0;
+        soundonglow.alpha = 1;
+        soundoffnoglow.alpga = 1;
+        
+    }
+    else
+    {
+        soundonnoglow.alpha = 1;
+        soundoffglow.alpha = 1;
+        soundonglow.alpha = 0;
+        soundoffnoglow.alpga = 0;
+        
+    }
+    backtxt = game.add.sprite(350, 450, 'back');
+    backtxt.scale.setTo(.8, .8); backtxt.inputEnabled = true;
+
+    
+},
+update: function() {
+    /* Event listeners for when user hits text */
+    musiconglow.events.onInputDown.add(this.turnMusicOn, this);
+    musiconnoglow.events.onInputDown.add(this.turnMusicOn, this);
+    musicoffglow.events.onInputDown.add(this.turnMusicOff, this);
+    musicoffnoglow.events.onInputDown.add(this.turnMusicOff, this);
+    soundonglow.events.onInputDown.add(this.turnSoundOn, this);
+    soundonnoglow.events.onInputDown.add(this.turnSoundOn, this);
+    soundoffglow.events.onInputDown.add(this.turnSoundOff, this);
+    soundoffnoglow.events.onInputDown.add(this.turnSoundOff, this);
+    backtxt.events.onInputDown.add(this.backToMenu, this);
+},
+    /*Methods for toggling on/off music & sound effects*/
+turnMusicOn: function() {
+  if(musicOn == false)
+  {
+      if(musicPlaying == false)
+          this.bgm.play();
+      else
+          this.bgm.resume();
+      musicPlaying = true;
+      musicOn = true;
+      musiconglow.alpha = 1;
+      musiconnoglow.alpha = 0;
+      musicoffglow.alpha = 0;
+      musicoffnoglow.alpha = 1;
+  }
+},
+turnMusicOff: function() {
+  if(musicOn == true)
+  {
+   this.bgm.pause();
+   musicPlaying = false;
+   musicOn = false;
+   musiconglow.alpha = 0;
+   musiconnoglow.alpha = 1;
+   musicoffglow.alpha = 1;
+   musicoffnoglow.alpha = 0;
+  }
+},
+turnSoundOn: function() {
+  if(soundOn == false)
+  {
+      soundOn = true;
+      soundonglow.alpha = 1;
+      soundonnoglow.alpha = 0;
+      soundoffglow.alpha = 0;
+      soundoffnoglow.alpha = 1;
+  }
+},
+turnSoundOff: function() {
+    if(soundOn == true)
+    {
+        soundOn = false;
+        soundonglow.alpha = 0;
+        soundonnoglow.alpha = 1;
+        soundoffglow.alpha = 1;
+        soundoffnoglow.alpha = 0;
+    }
+},
+    //Takes user back to main menu
+backToMenu: function() {
+  game.state.start('MainMenu');
+  }
+}
+
+var Credits = function(game) {};
+Credits.prototype = {
+preload: function()
+    {
+        game.load.image('credittxt', 'assets/img/credittxt.png');
+    },
+
+create: function()
+    {
+        game.stage.backgroundColor = '#000';
+        credittxt = game.add.sprite(50, 560, 'credittxt');
+        backtxt = game.add.sprite(325, 2000, 'back');
+        backtxt.scale.setTo(.8, .8); backtxt.inputEnabled = true;
+    },
+    
+update: function()
+    {
+        if(credittxt.y > -1450)
+            credittxt.y -= 1;
+        if(backtxt.y > 245)
+            backtxt.y -= 1;
+        backtxt.events.onInputDown.add(this.backToMenu, this);
+    },
+backToMenu: function() {
+    game.state.start('MainMenu');
+}
 }
 
 var Intro = function(game) {};
@@ -883,7 +1069,9 @@ create: function() {
 }
 
 //Adds game states
-game.state.add('Menu', Menu); //adds intro state
+game.state.add('MainMenu', MainMenu); //adds intro state
+game.state.add('Settings', Settings); //adds settings state
+game.state.add('Credits', Credits); //adds credits state
 game.state.add('Intro', Intro); // adds play state
 game.state.add('Day', Day); //adds main menu state
 game.state.add('BattleIntro', BattleIntro); // adds battle intro state
@@ -892,4 +1080,4 @@ game.state.add('Battle', Battle); // adds battle state
 game.state.add('BeatAlly', BeatAlly); //adds state for when you beat the Ally
 game.state.add('BeatAngel', BeatAngel); //adds state for when you beat angels
 game.state.add('GameOver', GameOver); //Adds state for when you lose in battle
-game.state.start('Menu'); // starts the game at the main menu
+game.state.start('MainMenu'); // starts the game at the main menu
