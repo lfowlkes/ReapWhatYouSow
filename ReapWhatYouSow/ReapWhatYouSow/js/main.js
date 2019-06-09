@@ -8,7 +8,7 @@ var game = new Phaser.Game(800, 560, Phaser.AUTO, 'phaser');
 
 var name = ''; // the name of the character, inputted later by player
 var musicOn = true; //if the player wants music on
-var musicPlaying = false;
+var musicPlaying = false; //checks if music is currently playing. redundant? yup!
 var soundOn = true; // if the player wants sound effects on
 
 var MainMenu = function(game) {};
@@ -119,6 +119,12 @@ MainMenu.prototype = {
         playtext.events.onInputDown.add(this.startPlay, this);
         opttext.events.onInputDown.add(this.openSettings, this);
         creditstext.events.onInputDown.add(this.openCredits, this);
+        
+        if(game.input.keyboard.isDown(Phaser.Keyboard.A))
+        {
+            this.menubgm.stop();
+            game.state.start('Battle', true, false, true);
+        }
     },
     /***** All the functions for handling text hover events *****/
     hoverPlay: function() {
@@ -312,7 +318,7 @@ backToMenu: function() {
   game.state.start('MainMenu');
   }
 }
-
+//stage for the credits page
 var Credits = function(game) {};
 Credits.prototype = {
 preload: function()
@@ -330,13 +336,14 @@ create: function()
     
 update: function()
     {
+        /* Scrolls up the credits like a movie because we're super fancy like that. */
         if(credittxt.y > -1450)
             credittxt.y -= 1;
         if(backtxt.y > 245)
             backtxt.y -= 1;
         backtxt.events.onInputDown.add(this.backToMenu, this);
     },
-backToMenu: function() {
+backToMenu: function() { //takes user back to main menu
     game.state.start('MainMenu');
 }
 }
@@ -1046,25 +1053,204 @@ cutsceneCamera: function() {
 
 var Battle = function(game) {};
 Battle.prototype = {
-create: function() {
-}
+    
+init: function(fightAlly)
+    {
+        allyFight = fightAlly; //checks if player is fighting the angel or the ally
+    },
+preload: function()
+    {
+        game.load.image('meter', 'assets/img/barmeter.png');
+        game.load.image('bar', 'assets/img/battlebar.png');
+        game.load.image('angel', 'assets/img/angeltemp.jpg');
+        game.load.image('PC', 'assets/img/player_profile.png');
+        game.load.image('house', 'assets/img/housebg.png');
+        game.load.image('fade', 'assets/img/fadebg.png');
+        game.load.spritesheet('allysp', 'assets/img/allysprite.png', 32, 32);
+        game.load.spritesheet('angel', 'assets/img/angel.png', 48, 64);
+    },
+create: function()
+    {
+        /* Stage set up assets */
+        game.stage.backgroundColor = '#cec3ff';
+        housebg = game.add.sprite(0, 0, 'house');
+        game.physics.startSystem(Phaser.Physics.ARCADE);
+        textbar = game.add.sprite(0, 390, 'textbar');
+        textbar.scale.setTo(1.5, 1.5);
+        txt = game.add.text(60, 525, 'Press [SPACE] when meter is within green area to attack.', { font: '20px Courier New', fill: '#FFF'});
+        met = game.add.sprite(395, 452, 'meter');
+        bar = game.add.sprite(200, 450, 'bar'); bar.alpha = .5;
+        met.enableBody = true;
+        game.physics.arcade.enable(met);
+        
+        /* Sprite assets */
+        pc = game.add.sprite(640, 108, 'PC');
+        pc.scale.setTo(.3, .3);
+        player = game.add.sprite(425, 250, 'player', 4); player.scale.setTo(1.5, 1.5);
+        if(allyFight)
+        {
+            enemy = game.add.sprite(151, 116, 'ally');
+            enemy.scale.setTo(-.125, .125);
+            enemysp = game.add.sprite(325, 250, 'allysp', 7); enemysp.scale.setTo(1.5,1.5);
+        }
+        else
+        {
+            enemy = game.add.sprite(10, 200, 'angel')
+            enemy.scale.setTo(.25, .25);
+            enemysp = game.add.sprite(325, 250, 'angel', 4);
+        }
+        
+        /*Text assets */
+        enemyHealth = 10;
+        playerHealth = 20;
+        eHealthTxt = game.add.text(10, 50, 'Health: 10');
+        pHealthTxt = game.add.text(650, 50, 'Health: 20');
+        missed = game.add.text(345, 405, '', { font: '30px Courier New', fill: '#FFF'});
+        plyrAtkVal = game.add.text(700, 20, '', { fill: '#ff0000'});
+        enmyAtkVal = game.add.text(50, 20, '', { fill: '#ff0000'});
+        
+        fade = game.add.sprite(0,0, 'fade');
+        start = false;
+        moving = true;
+        BAR_VEL = 600 //constant for bar movement velocity
+},
+    
+update: function() {
+    //game.debug.spriteInfo(met, 10, 10);
+    if(fade.alpha > 0)
+    {
+        fade.alpha -= .025;
+    }
+    if(fade.alpha <= 0 && !start)
+    {
+        start = true;
+        met.body.velocity.x = BAR_VEL;
+    }
+    console.log(start);
+    if (enemyHealth <= 0)
+    {
+        timer3 = game.time.create();
+        if(allyFight)
+        {
+            timer.add(2000, this.allyEnd, this);
+        }
+        else
+        {
+            timer.add(2000, this.angelEnd, this);
+        }
+        timer.start();
+    }
+    else if(playerHealth <= 0)
+    {
+        game.state.start('GameOver');
+    }
+    
+    //DEBUG
+    /*if(game.input.keyboard.isDown(Phaser.Keyboard.Z))
+     met.x -= 1;
+     if(game.input.keyboard.isDown(Phaser.Keyboard.X))
+     met.x += 1;*/
+    
+    if(game.input.keyboard.justPressed(Phaser.Keyboard.SPACEBAR))
+    {
+        if(moving)
+        {
+            timer2 = game.time.create(); //timer for enemy attack
+            timer2.add(3000, this.attack, this);
+            timer2.start();
+            timer = game.time.create(); //timer for reset of text and stuff
+            timer.add(5000, this.reset, this);
+            timer.start();
+            if(met.x >= bar.x + 179 && met.x <= bar.x + 217) //checks if player stopped meter within range
+            {
+                enemyHealth -= 2;
+                enmyAtkVal.text = '-2';
+                eHealthTxt.text = 'Health: ' + enemyHealth;
+                
+            }
+            else //lets the player know if they missed
+            {
+                missed.text = 'Missed';
+            }
+            moving = false;
+        }
+        //if so, subtract x from enemy
+        //if not, display 'missed' text
+        // enemy attack = rng
+        //wait like 3 seconds
+        //met.x = 295
+        //moving = true
+        
+    }
+    if(start && moving) //if the bar is currently allowed the move and the round has started
+    {
+        enmyAtkVal.text = '';
+        plyrAtkVal.text = '';
+        if(met.x <= 215) //moves meter within constraint of bar
+            met.body.velocity.x = BAR_VEL;
+        else if(met.x >= 575)
+            met.body.velocity.x = -BAR_VEL;
+    }
+    else
+    {
+        met.body.velocity.x = 0; //stops moving meter if moving isn't true
+    }
+    //time.text = 'Time: ' + timer.elapsed / Phaser.Timer.SECOND;
+},
+    
+    attack: function() { //deals with figuring out enemy attack value
+        missed.text = '';
+        x = game.rnd.integerInRange(0,3);
+        if(x > 0)
+        {
+            playerHealth -= x
+            plyrAtkVal.text = '-' + x
+            pHealthTxt.text = 'Health: ' + playerHealth;
+        }
+        else
+            missed.text = 'Dodged';
+    },
+    
+    reset: function() //resets text and meter
+    {
+        moving = true;
+        met.x = 295;
+        met.body.velocity.x = 500;
+        timer.destroy
+        missed.text = '';
+    },
+    allyEnd: function() //triggers stage if you beat the ally
+    {
+        game.state.start('BeatAlly');
+    },
+    angelEnd: function() //triggers stage if you beat the angel
+    {
+        game.state.start('BeatAngel');
+    }
 }
 
 var BeatAlly = function(game) {};
 BeatAlly.prototype = {
 create: function() {
+                                   
+    game.stage.backgroundColor = '#FFF';
+    game.add.text(50, 50, 'Hahaha get rekked ally');
 }
 }
 
 var BeatAngel = function(game) {};
 BeatAngel.prototype = {
 create: function() {
+    game.stage.backgroundColor = '#FFF';
+    game.add.text(50, 50, 'Hahaha get rekked angels');
 }
 }
 
 var GameOver = function(game) {};
 GameOver.prototype = {
 create: function() {
+    game.stage.backgroundColor = '#FFF';
+    game.add.text(50, 50, 'lolz u ded');
 }
 }
 
