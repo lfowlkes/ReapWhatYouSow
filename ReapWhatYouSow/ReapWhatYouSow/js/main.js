@@ -7,7 +7,7 @@ var game = new Phaser.Game(800, 560, Phaser.AUTO, 'phaser');
 
 
 var name = ''; // the name of the character, inputted later by player
-var musicOn = true; //if the player wants music on
+var musicOn = false; //if the player wants music on
 var musicPlaying = false; //checks if music is currently playing. redundant? yup!
 var soundOn = true; // if the player wants sound effects on
 
@@ -40,6 +40,7 @@ MainMenu.prototype = {
         game.load.image('npc1', 'assets/img/npc1.png');
         game.load.image('desk', 'assets/img/desk.png');
         game.load.spritesheet('player', 'assets/img/player.png', 32, 32);
+        game.load.spritesheet('allysp', 'assets/img/allysprite.png', 32, 32);
         game.load.tilemap('offmap', 'assets/img/onetilesheet.json', null, Phaser.Tilemap.TILED_JSON);
         game.load.image('officetile', 'assets/img/officetest4 - Copy.png');
         
@@ -47,6 +48,7 @@ MainMenu.prototype = {
         game.load.image('housebg', 'assets/img/temphouse.png');
         game.load.tilemap('housemap', 'assets/img/houseonetilesheet.json', null, Phaser.Tilemap.TILED_JSON);
         game.load.image('housetile', 'assets/img/house5.png');
+        game.load.image('fadebg', 'assets/img/fadebg.png');
         
         /* Sounds */
         //Source: https://freesound.org/people/timgormly/sounds/170142/
@@ -55,6 +57,10 @@ MainMenu.prototype = {
         game.load.audio('officebgm', 'assets/audio/tempofficebgm.mp3');
         //Source: https://soundimage.org/dark-ominous/ - into the haunted forest
         game.load.audio('menubgm', 'assets/audio/menubgm.mp3');
+        //Source: https://incompetech.filmmusic.io/song/3497-childrens-theme/
+        game.load.audio('housebgm', 'assets/audio/enterhouse.mp3');
+        //Source: https://incompetech.filmmusic.io/song/3547-controlled-chaos/
+        game.load.audio('battlebgm', 'assets/audio/battlemusic.mp3');
     },
     create: function() { // Loads menu & instructions
         game.stage.backgroundColor = '#000000'; // sets background color
@@ -124,6 +130,12 @@ MainMenu.prototype = {
         {
             this.menubgm.stop();
             game.state.start('Battle', true, false, true);
+        }
+        if(game.input.keyboard.isDown(Phaser.Keyboard.B))
+        {
+            this.menubgm.stop();
+            game.state.start('EnterHouse', true, false, true);
+            SPEED = 150;
         }
     },
     /***** All the functions for handling text hover events *****/
@@ -376,7 +388,7 @@ Intro.prototype = {
         this.pcSprite = [4, 8, 14]; //array of all line #s that need PC sprite on screen
         this.bossSprite = [0, 1, 2, 5, 6, 7, 8, 10, 11, 12, 13]; //array of all line #s that need the boss sprite on screen
         this.textObj = game.add.text(10, 420, 'wow', { font: '20px Courier New', fill: '#FFF'}); //Text object used for displying typewriter script text
-        this.progtextObj = game.add.text(670, 535, '', { font: '15px Courier New', fill: '#FFF', align: 'right'});
+        this.progtextObj = game.add.text(650, 535, '', { font: '15px Courier New', fill: '#FFF', align: 'right'});
         this.index = 0; //which line of the script we're pulling from
         this.i = 0; //what character of the sentence the typewriter is on
         this.counter = 0; //counter to slow down the typewriter.
@@ -411,7 +423,7 @@ Intro.prototype = {
                 this.textObj.text = this.msgs[this.index];
                 if(this.index == 0) //displays instruction on first line
                 {
-                    this.progtextObj.text = 'Press space >>'
+                    this.progtextObj.text = 'Press [SPACE] >>'
                 }
                 else //trusts that the player now knows >> = press space
                 {
@@ -468,7 +480,7 @@ Intro.prototype = {
             {
                 if(this.index == 0) //displays instruction on first line
                 {
-                    this.progtextObj.text = 'Press space >>'
+                    this.progtextObj.text = 'Press [SPACE] >>'
                 }
                 else //trusts that the player now knows >> = press space
                 {
@@ -585,19 +597,22 @@ Day.prototype = {
         /*1*/board = objs.create(460, 700, 'board'); board.scale.setTo(1, 1); board.alpha = 0; //sprite for bulletin board
         /*2*/npc1 = objs.create(1970, 214, 'npc1'); npc1.scale.setTo(1.5,1.5); //sprite for office npc
         /*3*/desk = objs.create(1000, 480, 'desk'); desk.scale.setTo(.5, .5); desk.alpha = 0; //sprite for desk
+        /*4*/allysp = objs.create(878, 775, 'allysp', 1); allysp.scale.setTo(1.5, 1.5);
         copymach.body.immovable = true; //stops player from moving copy machine
         board.body.immovable = true; //stops player from moving bulletin board
         npc1.body.immovable = true; // stops player from moving npc
         desk.body.immovable = true; //stops player from moving desk
+        allysp.body.immovable = true;
         game.physics.arcade.enable(objs); //turns on arcade physics for objects
         trigKeys = game.add.group(); //creates a group for the indicator icons
         trig1 = trigKeys.create(copymach.x+10, copymach.y - 30, 'ekey'); trig1.alpha = 0; //icon for copy machine
         trig2 = trigKeys.create(board.x+30, board.y-60, 'ekey'); trig2.alpha = 0; //icon for bulletin board
         trig3 = trigKeys.create(npc1.x+5, npc1.y-30, 'ekey'); trig3.alpha = 0; // icon for npc
         trig4 = trigKeys.create(desk.x+25, desk.y-30, 'ekey'); trig4.alpha = 0; //icon for desk
-        found = [false, false, false, false]; //array of booleans for if an obj has been interacted with yet
+        trig5 = trigKeys.create(allysp.x+8, allysp.y-30, 'ekey');
+        found = [false, false, false, false, false]; //array of booleans for if an obj has been interacted with yet
         numFound = 0; //tracks the number of objects that have been found so far
-        inRange = [false, false, false, false]; //array of booleans testing if player is within range of NPC/O
+        inRange = [false, false, false, false, false]; //array of booleans testing if player is within range of NPC/O
         
         
     },
@@ -678,7 +693,7 @@ Day.prototype = {
             {
                 if(numFound == inRange.length) //when the player has found all objects
                 {
-                    textObj.text = 'Looks like you\'ve found everything worth seeing here.\nLet\'s talk tonight. You know where to meet me.\n\n(Press X to continue.)';
+                    textObj.text = 'Looks like you\'ve found everything worth seeing here.\nLet\'s talk tonight. You know where to meet me.\n\n(Press [Z] to continue.)';
                 }
                 else //closes the text bar if there are still objects left to find
                 {
@@ -694,7 +709,7 @@ Day.prototype = {
         
         game.physics.arcade.collide(player, objs); //enables collisions between player and interaction sprites
         
-        if(game.input.keyboard.isDown(Phaser.Keyboard.X)) //starts battle intro when player hits x
+        if(game.input.keyboard.isDown(Phaser.Keyboard.Z)) //starts battle intro when player hits x
         {
             game.state.start('BattleIntro');
             this.officebgm.stop();
@@ -769,6 +784,18 @@ Day.prototype = {
                      found[3] = true;
                  }
              }
+             else if(inRange[4])
+             {
+                 activeText = true;
+                 textObj.alpha = 1;
+                 textObj.fill = '#FFF'
+                 this.obj5(textObj);
+                 if(found[4] == false)
+                 {
+                     numFound++;
+                     found[4] = true;
+                 }
+             }
          }
         //debug info for sprite
     game.debug.spriteInfo(player, 10, 10);
@@ -797,7 +824,7 @@ obj1: function(textObj) //triggers text for found copy machine
         textObj.alpha = 1;
         textObj.x = game.camera.x + 5;
         textObj.y = game.camera.y + 410;
-        textObj.text = 'It looks like Decard made a copy of... medical bills? That\'s odd.\nWhy are there so many of them?\n\n(Press space to close.)';
+        textObj.text = 'It looks like Decard made a copy of... medical bills? That\'s odd.\nWhy are there so many of them?\n\n(Press [SPACE] to close.)';
     },
     
 obj2: function() //triggers text for found bulletin board
@@ -808,7 +835,7 @@ obj2: function() //triggers text for found bulletin board
         textObj.alpha = 1;
         textObj.x = game.camera.x + 5;
         textObj.y = game.camera.y + 410;
-        textObj.text = 'There\s a list of past employees of the month.\nDecard is the only one not on it.\n\n\n(Press space to close.)';
+        textObj.text = 'There\s a list of past employees of the month.\nDecard is the only one not on it.\n\n\n(Press [SPACE] to close.)';
     },
 obj3: function()//triggers text for found npc
     {
@@ -818,7 +845,7 @@ obj3: function()//triggers text for found npc
         textObj.alpha = 1;
         textObj.x = game.camera.x + 5;
         textObj.y = game.camera.y + 410;
-        textObj.text = 'Decard? Pfft. How a guy like that still has a job is beyond me.\nWish I could get away with coming in late and leaving early as\noften as he does.\n\n(Press space to close.)';
+        textObj.text = 'Decard? Pfft. How a guy like that still has a job is beyond me.\nWish I could get away with coming in late and leaving early as\noften as he does.\n\n\n(Press [SPACE] to close.)';
     },
 obj4: function() //triggers text for found desk
     {
@@ -828,7 +855,17 @@ obj4: function() //triggers text for found desk
         textObj.alpha = 1;
         textObj.x = game.camera.x + 5;
         textObj.y = game.camera.y + 410;
-        textObj.text = 'Decard\'s desk is such a mess.\n\n\n(Press space to close.)';
+        textObj.text = 'Decard\'s desk is such a mess. Wait, is that a bank statement?\nWhat did he just spend $50,000 on? Where did he GET $50,000?\n\n\n(Press [SPACE] to close.)';
+    },
+obj5: function() //triggers text for found desk
+    {
+        textbar2.x = game.camera.x;
+        textbar2.y = game.camera.y + 400
+        textbar2.alpha = 1;
+        textObj.alpha = 1;
+        textObj.x = game.camera.x + 5;
+        textObj.y = game.camera.y + 410;
+        textObj.text = 'Ah, so you\'re my partner in this investigation, eh?\nI\'d give you a hand with the search, but I hear there\'s some\nice cream in the breakroom that\'s calling my name.\n\n(Press [SPACE] to close';
     }
 }
     
@@ -864,7 +901,7 @@ BattleIntro.prototype = {
         this.index = 0; //which line of msg array we're on
         this.i = 0; //which letter of line we're on
         this.counter = 0; //frame counter for text delay
-        this.progtextObj = game.add.text(670, 525, '', { font: '15px Courier New', fill: '#FFF' });
+        this.progtextObj = game.add.text(655, 525, '', { font: '15px Courier New', fill: '#FFF' });
         this.textaud = game.add.audio('textaud');
         pc = game.add.sprite(640, 108, 'PC');
         pc.scale.setTo(.3, .3);
@@ -883,9 +920,9 @@ BattleIntro.prototype = {
         }
         if(game.input.keyboard.justPressed(Phaser.Keyboard.SPACEBAR))
             {
-                if(this.index > this.msgs.length)
+                if(this.index == this.msgs.length-1)
                 {
-                    gamee.state.start('EnterHouse');
+                    game.state.start('EnterHouse');
                 }
                 else if(this.i < this.msgs[this.index].length)
                 {
@@ -930,7 +967,7 @@ BattleIntro.prototype = {
             {
                 if(this.index == 0) //displays instruction on first line
                 {
-                    this.progtextObj.text = 'Press space >>'
+                    this.progtextObj.text = 'Press [SPACE] >>'
                 }
                 else //trusts that the player now knows >> = press space
                 {
@@ -954,6 +991,11 @@ BattleIntro.prototype = {
 var EnterHouse = function(game) {};
 EnterHouse.prototype = {
 create: function() {
+    housebgm = game.add.audio('housebgm');
+    if(musicOn)
+    {
+        housebgm.play('', 0, .5, true);
+    }
     game.world.setBounds(0, 0, 1600, 1120); //sets world bounds //TODO: figure out how big the map actually is lol
     cursors = game.input.keyboard.createCursorKeys(); //creates arrow key tracking
     game.physics.startSystem(Phaser.Physics.ARCADE); //enables arcade physics
@@ -982,6 +1024,25 @@ create: function() {
     
     cutscene = false;
     freeze = false; //checks if movement needs to be frozen [during cutscene]
+    fadebg = game.add.sprite(0,0,'fadebg'); fadebg.alpha = 0;
+    
+    /* Cutscene Assets */
+    this.index = 0; //which line of msg array we're on
+    this.i = 0; //which letter of line we're on
+    this.counter = 0; //frame counter for text delay
+    this.textaud = game.add.audio('textaud');
+    textbar = game.add.sprite(0, 550, 'textbar');
+    textbar.scale.setTo(1.5, 1.5); textbar.alpha = 0;
+    txt = game.add.text(10, 560, '', { font: '20px Courier New', fill: '#FFF'});
+    this.progtextObj = game.add.text(650, 630, '', { font: '15px Courier New', fill: '#FFF' });
+    msgs = [
+    /*0*/"Wait... our target isn't Decard? It's this little girl? His daughter?",
+    /*1*/"Who the hell sends people to kill a little girl?",
+    /*2*/"It's also 2am now ans words are hard",
+    /*3*/"According to all known laws of aviai-",
+    /*4*/"Jk we're not about to do the bee movie",
+    /*5*/"Okay that's enough for now"
+            ]
 },
     
 update: function()
@@ -1037,18 +1098,101 @@ update: function()
         {
             cutscene = true;
             freeze = true;
-            this.cutsceneCamera(game.camera);
+            timer = game.time.create(); //timer for reset of text and stuff
+            timer.loop(50, this.moveCamera, this);
+            timer.start();
+        }
+        if(cutscene == true && game.camera.y <= 103)
+        {
+            textbar.alpha = 1;
+            this.typewriter(msgs);
+            
         }
     },
     
-cutsceneCamera: function() {
-    console.log('enter');
-    while(game.camera.y > 172) //moves camera to cutscene position //TODO: make this smoother w/ timer
+ moveCamera: function() {
+
+        game.camera.y -= 2;
+    
+},
+fadeOut: function(){
+    if(fadebg.alpha >= .9)
+        game.state.start('Battle');
+    fadebg.alpha += .05;
+},
+    
+typewriter: function(msg)
     {
-        console.log('movin');
-        game.camera.y -= .5;
+        if(game.input.keyboard.justPressed(Phaser.Keyboard.X))
+        {
+            game.state.start('Battle');
+        }
+        if(game.input.keyboard.justPressed(Phaser.Keyboard.SPACEBAR))
+        {
+            console.log('Index: ' + this.index);
+            console.log('Length: ' + msg.length);
+            if(this.index >= msg.length-1)
+            {
+                timer2 = game.time.create(); //timer for reset of text and stuff
+                timer2.loop(50, this.fadeOut, this);
+                timer2.start();
+            }
+            else if(this.i < msgs[this.index].length)
+            {
+                this.i = msg[this.index].length;
+                txt.text = msg[this.index];
+            }
+            else
+            {
+                this.index++;
+                this.i = 0;
+                this.counter = 0;
+                
+                /*if(this.pcSprite.includes(this.index)) //checks if we're on a line that needs the PC sprite on screen
+                 {
+                 pc.alpha = 1;
+                 ally.alpha = 0;
+                 }
+                 else if (this.allySprite.includes(this.index))// we're on a line that needs ally's sprite on screen
+                 {
+                 pc.alpha = 0;
+                 ally.alpha = 1;
+                 }
+                 else
+                 {
+                 pc.alpha = 0;
+                 ally.alpha = 0;
+                 this.textObj.x = 350;
+                 }*/
+            }
+            
+        }
+        
+        
+        if(this.index < msg.length)
+        {
+            if(this.i <= msg[this.index].length)
+            {
+                txt.text = msg[this.index].substr(0, this.i);
+                if(this.counter % 4 == 0 && soundOn == true)
+                    this.textaud.play('', 0, .07, false);
+                this.i++; //moves us to the next letter
+            }
+            if(this.i == msg[this.index].length)
+            {
+                if(this.index == 0) //displays instruction on first line
+                {
+                    this.progtextObj.text = 'Press [SPACE] >>'
+                }
+                else //trusts that the player now knows >> = press space
+                {
+                    this.progtextObj.x = 775
+                    this.progtextObj.text = '>>'
+                }
+            }
+        }
+        this.counter++;
     }
-}
 }
 
 var Battle = function(game) {};
@@ -1066,12 +1210,16 @@ preload: function()
         game.load.image('PC', 'assets/img/player_profile.png');
         game.load.image('house', 'assets/img/housebg.png');
         game.load.image('fade', 'assets/img/fadebg.png');
-        game.load.spritesheet('allysp', 'assets/img/allysprite.png', 32, 32);
         game.load.spritesheet('angel', 'assets/img/angel.png', 48, 64);
     },
 create: function()
     {
         /* Stage set up assets */
+        battlebgm = game.add.audio('battlebgm');
+        if(musicOn)
+        {
+            battlebgm.play('', 0, .5, true);
+        }
         game.stage.backgroundColor = '#cec3ff';
         housebg = game.add.sprite(0, 0, 'house');
         game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -1097,7 +1245,7 @@ create: function()
         {
             enemy = game.add.sprite(10, 200, 'angel')
             enemy.scale.setTo(.25, .25);
-            enemysp = game.add.sprite(325, 250, 'angel', 4);
+            enemysp = game.add.sprite(325, 245, 'angel', 4); enemysp.scale.setTo(.95, .95);
         }
         
         /*Text assets */
@@ -1124,7 +1272,9 @@ update: function() {
     if(fade.alpha <= 0 && !start)
     {
         start = true;
-        met.body.velocity.x = BAR_VEL;
+        timer3 = game.time.create(); //timer for reset of text and stuff
+        timer3.add(3000, this.startBar, this);
+        timer3.start();
     }
     console.log(start);
     if (enemyHealth <= 0)
@@ -1226,6 +1376,10 @@ update: function() {
     angelEnd: function() //triggers stage if you beat the angel
     {
         game.state.start('BeatAngel');
+    },
+startBar: function()
+    {
+        met.body.velocity.x = BAR_VEL;
     }
 }
 
