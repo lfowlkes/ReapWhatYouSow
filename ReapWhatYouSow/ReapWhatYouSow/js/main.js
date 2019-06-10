@@ -10,13 +10,14 @@ var name = ''; // the name of the character, inputted later by player
 var musicOn = true; //if the player wants music on
 var musicPlaying = false; //checks if music is currently playing. redundant? yup!
 var soundOn = true; // if the player wants sound effects on
+var menubgm;
 
 var MainMenu = function(game) {};
 MainMenu.prototype = {
     
     preload: function() {
         /* Menu Text */
-        game.load.image('office', 'assets/img/tempoffice.png');
+        game.load.image('office', 'assets/img/officebg.png');
         game.load.image('daybg', 'assets/img/officetest.png');
         game.load.image('textbar', 'assets/img/textbar.png');
         game.load.image('titletext', 'assets/img/titletext.png');
@@ -48,6 +49,7 @@ MainMenu.prototype = {
         game.load.image('officetile', 'assets/img/officetest4 - Copy.png');
         
         /* House scene assets */
+        game.load.image('outhousebg', 'assets/img/outdoorhousebg.png');
         game.load.image('housebg', 'assets/img/housebg.png');
         game.load.tilemap('housemap', 'assets/img/houseonetilesheet.json', null, Phaser.Tilemap.TILED_JSON);
         game.load.image('housetile', 'assets/img/house5.png');
@@ -55,8 +57,10 @@ MainMenu.prototype = {
         game.load.image('savebutton', 'assets/img/Savebutton.png');
         game.load.image('reapbutton', 'assets/img/ReapButton.png');
         game.load.image('angeltemp', 'assets/img/angeltemp.jpg');
+        game.load.image('girl', 'assets/img/lilgirl.png');
         game.load.spritesheet('angelsp', 'assets/img/angel.png', 48, 64);
         game.load.spritesheet('plyrrpr', 'assets/img/plyrreaperss.png', 32, 32);
+        game.load.spritesheet('allybattle', 'assets/img/allybattless.png', 64, 64);
         
         /* Sounds */
         //Source: https://freesound.org/people/timgormly/sounds/170142/
@@ -77,19 +81,17 @@ MainMenu.prototype = {
         /* Adds text sprites */
         titletext = game.add.sprite(80, 30, 'titletext');
         titletext.scale.setTo(1, 1); titletext.alpha = 0;
-        playtext = game.add.sprite(298, 190, 'playtext');
+        playtext = game.add.sprite(298, 200, 'playtext');
         playtext.scale.setTo(1.25, 1.25); playtext.alpha = 0; playtext.inputEnabled = true;
-        opttext = game.add.sprite(130, 290, 'opttext');
+        opttext = game.add.sprite(307, 315, 'opttext');
         opttext.scale.setTo(.75, .75); opttext.alpha = 0; opttext.inputEnabled = true;
-        creditstext = game.add.sprite(485, 291, 'creditstext');
+        creditstext = game.add.sprite(309, 405, 'creditstext');
         creditstext.scale.setTo(.75, .75); creditstext.alpha = 0; creditstext.inputEnabled = true;
-        quittext = game.add.sprite(336, 390, 'quittext');
-        quittext.scale.setTo(.75, .75); quittext.alpha = 0; quittext.inputEnabled = true;
         ALPHARATE = .03; //Rate at which things fade in/out
-        this.menubgm = game.add.audio('menubgm'); //background music
+        menubgm = game.add.audio('menubgm'); //background music
         if(musicOn == true && musicPlaying == false) //plays music if settings are enabled and it isn't already playing
         {
-           this.menubgm.play('', 0, .5, true);
+           menubgm.play('', 0, .5, true);
            musicPlaying = true;
         }
     },
@@ -111,11 +113,7 @@ MainMenu.prototype = {
         {
             opttext.alpha += ALPHARATE;
         }
-        if(opttext.alpha >=.9 && quittext.alpha <=.9)
-        {
-            quittext.alpha += ALPHARATE;
-        }
-        if(quittext.alpha >=.9 && creditstext.alpha <=.9)
+        if(opttext.alpha >=.9 && creditstext.alpha <=.9)
         {
             creditstext.alpha += ALPHARATE;
         }
@@ -129,8 +127,6 @@ MainMenu.prototype = {
         opttext.events.onInputOut.add(this.stopOptHover, this);
         creditstext.events.onInputOver.add(this.hoverCredits, this);
         creditstext.events.onInputOut.add(this.stopCreditsHover, this);
-        quittext.events.onInputOver.add(this.hoverQuit, this);
-        quittext.events.onInputOut.add(this.stopQuitHover, this);
         /**** Handles moving to different screens ****/
         playtext.events.onInputDown.add(this.startPlay, this);
         opttext.events.onInputDown.add(this.openSettings, this);
@@ -138,82 +134,85 @@ MainMenu.prototype = {
         
         if(game.input.keyboard.isDown(Phaser.Keyboard.A))
         {
-            this.menubgm.stop();
+            menubgm.stop();
             game.state.start('Battle', true, false, true);
         }
         if(game.input.keyboard.isDown(Phaser.Keyboard.B))
         {
-            this.menubgm.stop();
+            menubgm.stop();
             game.state.start('EnterHouse', true, false, true);
             SPEED = 150;
         }
         if(game.input.keyboard.isDown(Phaser.Keyboard.C))
         {
-            this.menubgm.stop();
+            menubgm.stop();
             game.state.start('GameOver', true, false, true);
         }
         if(game.input.keyboard.isDown(Phaser.Keyboard.D))
         {
-            this.menubgm.stop();
+            menubgm.stop();
             game.state.start('BeatAngel');
         }
     },
     /***** All the functions for handling text hover events *****/
     hoverPlay: function() {
         playtext.scale.setTo(1.5, 1.5);
-        playtext.x -= 12;
+        playtext.x -= 15;
         playtext.y -= 10;
     },
     
     stopPlayHover: function() {
         playtext.scale.setTo(1.25, 1.25);
-        playtext.x += 12;
+        playtext.x += 15;
         playtext.y += 10;
     },
     
     hoverOpt: function() {
         opttext.scale.setTo(1, 1);
-        opttext.x -= 12;
+        opttext.x -= 20;
         opttext.y -= 10;
     },
     
     stopOptHover: function() {
         opttext.scale.setTo(.75, .75);
-        opttext.x += 12;
+        opttext.x += 20;
         opttext.y += 10;
     },
     hoverCredits: function() {
         creditstext.scale.setTo(1, 1);
-        creditstext.x -= 12;
+        creditstext.x -= 20;
         creditstext.y -= 10;
     },
     
     stopCreditsHover: function() {
         creditstext.scale.setTo(.75, .75);
-        creditstext.x += 12;
+        creditstext.x += 20;
         creditstext.y += 10;
     },
-    hoverQuit: function() {
-        quittext.scale.setTo(1, 1);
-        quittext.x -= 12;
-        quittext.y -= 10;
-    },
-    
-    stopQuitHover: function() {
-        quittext.scale.setTo(.75, .75);
-        quittext.x += 12;
-        quittext.y += 10;
-    },
     openSettings: function() {
-        game.state.start('Settings', true, false, this.menubgm);
+        if(musicPlaying)
+        {
+            menubgm.stop();
+            musicPlaying = false;
+        }
+        game.state.start('Settings', true, false, menubgm);
     },
 openCredits: function()
     {
+        if(musicPlaying)
+        {
+            menubgm.stop();
+            musicPlaying = false;
+        }
         game.state.start('Credits');
     },
     startPlay: function() {
+        if(musicPlaying)
+        {
+            menubgm.stop();
+            musicPlaying = false;
+        }
         game.state.start('Intro');
-        this.menubgm.stop();
     }
 }
 
@@ -227,6 +226,11 @@ create: function() {
     game.stage.backgroundColor = '#000000'; // sets background color
     
     //Adds text sprites
+    if(musicOn == true && musicPlaying == false) //plays music if settings are enabled and it isn't already playing
+    {
+        menubgm.play('', 0, .5, true);
+        musicPlaying = true;
+    }
     optionstext = game.add.sprite(280, 10, 'opttext'); optionstext.scale.setTo(1.25, 1.25);
     musictxt = game.add.sprite(200, 190, 'musictxt');
     musictxt.inputEnabled = true;
@@ -347,7 +351,12 @@ turnSoundOff: function() {
 },
     //Takes user back to main menu
 backToMenu: function() {
-  game.state.start('MainMenu');
+    if(musicPlaying)
+    {
+        menubgm.stop();
+        musicPlaying = false;
+    }
+    game.state.start('MainMenu');
   }
 }
 //stage for the credits page
@@ -364,6 +373,11 @@ create: function()
         credittxt = game.add.sprite(50, 560, 'credittxt');
         backtxt = game.add.sprite(325, 2000, 'back');
         backtxt.scale.setTo(.8, .8); backtxt.inputEnabled = true;
+        if(musicOn == true && musicPlaying == false) //plays music if settings are enabled and it isn't already playing
+        {
+            menubgm.play('', 0, .5, true);
+            musicPlaying = true;
+        }
     },
     
 update: function()
@@ -376,6 +390,11 @@ update: function()
         backtxt.events.onInputDown.add(this.backToMenu, this);
     },
 backToMenu: function() { //takes user back to main menu
+    if(musicPlaying)
+    {
+        menubgm.stop();
+        musicPlaying = false;
+    }
     game.state.start('MainMenu');
 }
 }
@@ -384,7 +403,6 @@ var Intro = function(game) {};
 Intro.prototype = {
     init: function() {
         office = game.add.sprite(0,0, 'office'); //adds office background
-        office.scale.setTo(1.34, 1.4);
         //I'm intentionally changing to quotes so the script stands out
         //Array of script strings
         this.msgs = [
@@ -427,6 +445,10 @@ Intro.prototype = {
         boss = game.add.sprite(660, 200, 'boss');
         pc.alpha = 0;
         this.textaud = game.add.audio('textaud');
+        fade = game.add.sprite(0,0, 'fadebg');
+        timer = game.time.create(); //timer for reset of text and stuff
+        timer.loop(25, fadeBg, this, true, fade);
+        timer.start();
         
     },
     
@@ -457,13 +479,11 @@ Intro.prototype = {
             this.counter = 0;
             if(this.pcSprite.includes(this.index)) //checks if we're on a line that needs the PC sprite on screen
             {
-                console.log('pc');
                 pc.alpha = 1;
                 boss.alpha = 0;
             }
             else // we're on a line that needs boss' sprite on screen
             {
-                console.log('no pc: ' + this.index);
                 pc.alpha = 0;
                 boss.alpha = 1;
             }
@@ -472,7 +492,6 @@ Intro.prototype = {
         //TODO: remove dev cheat skip key
         if((office.alpha <= 0 || game.input.keyboard.justPressed(Phaser.Keyboard.X)) && this.index != 3)
         {
-            
             game.state.start('Day');
         }
         else if(this.index >= this.msgs.length)
@@ -480,7 +499,7 @@ Intro.prototype = {
             office.alpha -= .02;
             this.textObj.text = '';
             this.progtextObj.text = '';
-            boss.alpha -= .02;
+            boss.alpha = 0;
             pc.alpha -= .02;
         }
         /**** Writes text to screen, ONLY while there are still messages in the array ****/
@@ -547,7 +566,6 @@ Intro.prototype = {
     },
     // Moderately unnecessary function for typewriter text display, but it looks nice to have things as their own function so I made this.
     typewriter: function(msg, textObj, i) {
-        //console.log(msg);
         textObj.text = msg.substr(0, i);
         if(this.counter % 4 == 0 && soundOn == true)
         this.textaud.play('', 0, .125, false);
@@ -712,7 +730,9 @@ Day.prototype = {
             {
                 if(numFound == inRange.length) //when the player has found all objects
                 {
-                    textObj.text = 'Looks like you\'ve found everything worth seeing here.\nLet\'s talk tonight. You know where to meet me.\n\n(Press [Z] to continue.)';
+                    ally.x = game.camera.x + 152; ally.y = game.camera.y + 126;
+                    ally.alpha = 1;
+                    textObj.text = 'Looks like you\'ve found everything worth seeing here.\nLet\'s talk tonight. You know where to meet me.\n\n\n(Press [Z] to continue.)';
                 }
                 else //closes the text bar if there are still objects left to find
                 {
@@ -722,6 +742,7 @@ Day.prototype = {
                     {
                         textObj.alpha -= .025;
                     }
+                    ally.alpha = 0;
                 }
             }
         }
@@ -817,7 +838,7 @@ Day.prototype = {
              }
          }
         //debug info for sprite
-    game.debug.spriteInfo(player, 10, 10);
+    //game.debug.spriteInfo(player, 10, 10);
     },
     
 isInRange: function(player, obj) //checks if player is within range of an interaction  sprite
@@ -843,7 +864,7 @@ obj1: function(textObj) //triggers text for found copy machine
         textObj.alpha = 1;
         textObj.x = game.camera.x + 5;
         textObj.y = game.camera.y + 410;
-        textObj.text = 'It looks like Decard made a copy of... medical bills? That\'s odd.\nWhy are there so many of them?\n\n(Press [SPACE] to close.)';
+        textObj.text = 'It looks like Decard made a copy of... medical bills? That\'s odd.\nWhy are there so many of them?\n\n\n(Press [SPACE] to close.)';
     },
     
 obj2: function() //triggers text for found bulletin board
@@ -884,6 +905,7 @@ obj5: function() //triggers text for found desk
         textObj.alpha = 1;
         textObj.x = game.camera.x + 5;
         textObj.y = game.camera.y + 410;
+        ally.x = game.camera.x + 152; ally.y = game.camera.y + 126;
         ally.alpha = 1;
         textObj.text = 'Ah, so you\'re my partner in this investigation, eh?\nI\'d give you a hand with the search, but I hear there\'s some\nice cream in the breakroom that\'s calling my name.\n\n(Press [SPACE] to close)';
     }
@@ -893,7 +915,7 @@ var BattleIntro = function(game) {};
 BattleIntro.prototype = {
     create: function() {
         game.stage.backgroundColor = '#facade'; // sets background color
-        house = game.add.sprite(0, 0, 'housebg');
+        house = game.add.sprite(0, 0, 'outhousebg');
         textbar = game.add.sprite(0, 390, 'textbar');
         textbar.scale.setTo(1.5, 1.5);
         this.textObj = game.add.text(10, 410, '', { font: '20px Courier New', fill: '#FFF' });
@@ -929,7 +951,10 @@ BattleIntro.prototype = {
         pc.alpha = 0; //pc.scale.x = -1;
         this.pcSprite = [1, 3, 5, 7, 9, 11, 13, 16]; //array of all line #s that need PC sprite on screen
         this.allySprite = [0, 2, 4, 6, 8, 10, 12, 14, 15, 17]; //array of all line #s that need the ally sprite on screen
-        
+        fade = game.add.sprite(0,0, 'fadebg');
+        timer = game.time.create(); //timer for reset of text and stuff
+        timer.loop(25, fadeBg, this, true, fade);
+        timer.start();
     },
     
     update: function() {
@@ -1000,7 +1025,6 @@ BattleIntro.prototype = {
     },
     
     typewriter: function(msg, textObj, i) {
-        //console.log(msg);
         textObj.text = msg.substr(0, i);
         if(this.counter % 4 == 0 && soundOn == true)
             this.textaud.play('', 0, .07, false);
@@ -1033,13 +1057,14 @@ create: function() {
     map2.setCollisionBetween(0, 650, true, 'unaccesible'); //makes the inaccesible area collidable
     map2.setCollisionBetween(0, 688, true, 'objectsssss'); //makes object layer collidable
     
-    player = game.add.sprite(1326, 528, 'plyrrpr'); //adds player sprite
+    player = game.add.sprite(1326, 528, 'plyrrpr', 4); //adds player sprite
     player.scale.setTo(1.5,1.5); //makes sprite smaller
     game.physics.arcade.enable(player); //enables arcade physics on playre
     player.animations.add('left', [4, 3, 4, 5], 10, true); //left walking animation
     player.animations.add('right', [7, 6, 7, 8], 10, true); //right walking animation
     player.animations.add('up', [10, 9, 10, 11], 10, true); //up walking animation
     player.animations.add('down', [1, 0, 1, 2], 10, true); //down waling animation
+    
     
     cutscene = false;
     freeze = false; //checks if movement needs to be frozen [during cutscene]
@@ -1058,7 +1083,9 @@ create: function() {
     pc.scale.setTo(.3, .3);
     ally = game.add.sprite(152, 276, 'ally'); ally.alpha = 0;
     ally.scale.setTo(-.125, .125);
-    angel = game.add.sprite(100, 275, 'angel'); angel.scale.setTo(.15, .15); angel.alpha = 0;
+    angel = game.add.sprite(300, 425, 'angeltemp'); angel.scale.setTo(.15, .15); angel.alpha = 0;
+    angelsp = game.add.sprite(250, 325, 'angelsp', 7); angelsp.alpha = 0;
+    girl = game.add.sprite(355, 269, 'girl');
     pcSprite = [0, 1, 3, 5];
     allySprite = [2, 4, 6, 7];
     angelSprite = [52];
@@ -1069,7 +1096,7 @@ create: function() {
     /*3*/"You knew? You knew the target was this child?",
     /*4*/"Of course I knew. She's sick; the money Decard was stealing was\nto pay for her experimental medical procedures.\nWhat, you really thought Decard was the one on Death's door?",
     /*5*/"Yes! As a matter of fact, I did!\nYou can't expect me to just kill a child!",
-    /*6*/"Well, sorry to break it to you sweetheart, but our job involves\nreaping all sorts when their number comes up.\nIncluding kids.",
+    /*6*/"Well, sorry to break it to you sweetheart, but our job involves\nreaping all sorts when their number comes up. Including kids.",
     /*7*/"So, are you going to kill her, or what?"
             ]
     
@@ -1096,6 +1123,10 @@ create: function() {
     fightAlly = true;
     picked = false;
     fadebg = game.add.sprite(0,0,'fadebg'); fadebg.alpha = 0;
+    fade = game.add.sprite(0,0, 'fadebg'); fade.scale.setTo(5, 5);
+    timer2 = game.time.create(); //timer for reset of text and stuff
+    timer2.loop(25, fadeBg, this, true, fade);
+    timer2.start();
 },
     
 update: function()
@@ -1141,10 +1172,6 @@ update: function()
             player.body.velocity.y = 0;
         }
         
-        if(game.input.keyboard.isDown(Phaser.Keyboard.L)) //dev debugger; logs camera position
-        {
-            console.log('Camera position: ' + game.camera.x + ' , ' + game.camera.y);
-        }
         
         //triggers cutscene when player gets to specific point
         if((player.x >= 192 && player.x <= 272) && player.y <= 490 && cutscene == false)
@@ -1252,7 +1279,8 @@ typewriter: function(msg, code)
                 this.index++;
                 this.i = 0;
                 this.counter = 0;
-                
+                if(this.index == 2 && code == 'second' && !fightAlly)
+                    angelsp.alpha = 1;
                 if(pcSprite.includes(this.index)) //checks if we're on a line that needs the PC sprite on screen
                  {
                      pc.alpha = 1;
@@ -1350,11 +1378,12 @@ create: function()
         pc.scale.setTo(.3, .3);
         player = game.add.sprite(425, 250, 'plyrbat', 4); player.scale.setTo(1, 1);
         player.animations.add('bounce', [1, 0], 5, true);
+        girl = game.add.sprite(542, 140, 'girl');
         if(allyFight) //makes the sprite the ally if you chose to save the girl
         {
             enemy = game.add.sprite(151, 116, 'ally');
             enemy.scale.setTo(-.125, .125);
-            enemysp = game.add.sprite(325, 250, 'allybounce'); enemysp.scale.setTo(2, 2);
+            enemysp = game.add.sprite(325, 250, 'allybattle');
             enemysp.animations.add('bounce', [0,1], 5, true);
         }
         else //makes the sprite the angel if you chose to kill the girl
@@ -1408,6 +1437,8 @@ update: function() {
     }
     else if(playerHealth <= 0)
     {
+        if(musicOn)
+            battlebgm.stop();
         game.state.start('GameOver');
     }
     
@@ -1428,7 +1459,7 @@ update: function() {
             timer = game.time.create(); //timer for reset of text and stuff
             timer.add(5000, this.reset, this);
             timer.start();
-            if(met.x >= bar.x + 177 && met.x <= bar.x + 214) //checks if player stopped meter within range
+            if(met.x >= bar.x + 170 && met.x <= bar.x + 220) //checks if player stopped meter within range
             {
                 enemyHealth -= 2;
                 enmyAtkVal.text = '-2';
@@ -1441,12 +1472,6 @@ update: function() {
             }
             moving = false;
         }
-        //if so, subtract x from enemy
-        //if not, display 'missed' text
-        // enemy attack = rng
-        //wait like 3 seconds
-        //met.x = 295
-        //moving = true
         
     }
     if(start && moving) //if the bar is currently allowed the move and the round has started
@@ -1490,10 +1515,14 @@ update: function() {
     },
     allyEnd: function() //triggers stage if you beat the ally
     {
+        if(musicOn)
+            battlebgm.stop();
         game.state.start('BeatAlly');
     },
     angelEnd: function() //triggers stage if you beat the angel
     {
+        if(musicOn)
+            battlebgm.stop();
         game.state.start('BeatAngel');
     },
 startBar: function()
@@ -1505,6 +1534,10 @@ startBar: function()
 var BeatAlly = function(game) {};
 BeatAlly.prototype = {
 create: function() {
+    if(musicOn)
+    {
+        battlebgm.play('', 0, .5, true);
+    }
     game.stage.backgroundColor = '#000';
     housebg = game.add.sprite(0, 0, 'housebg');
     textbar = game.add.sprite(0, 390, 'textbar');
@@ -1516,7 +1549,8 @@ create: function() {
     ally = game.add.sprite(151, 116, 'ally');
     ally.scale.setTo(-.125, .125);
     angel = game.add.sprite(0,0, 'angeltemp'); angel.alpha = 0;
-    player = game.add.sprite(425, 250, 'player', 4); player.scale.setTo(1.5, 1.5);
+    girl = game.add.sprite(542, 140, 'girl');
+    player = game.add.sprite(425, 250, 'plyrrpr', 4); player.scale.setTo(1.5, 1.5);
     player.animations.add('up', [10, 9, 10, 11], 10, true); //up walking animation
     player.animations.add('right', [7, 6, 7, 8], 10, true); //right walking animation
     allysp = game.add.sprite(325, 250, 'allysp', 7); allysp.scale.setTo(1.5,1.5);
@@ -1530,18 +1564,21 @@ create: function() {
     txt.text = msgs[0];
     fadebg = game.add.sprite(0,0,'fadebg'); fadebg.alpha = 0;
     timer = game.time.create(); //timer for reset of text and stuff
-    timer.loop(25, fadeBg, this, false, fadebg);
+    timer.loop(25, fadeBgs, this, false, fadebg, 'Credits');
     timer2 = game.time.create(); //timer for reset of text and stuff
     timer2.loop(25, this.walk, this);
     done1 = false; //when the ally is done talking
     done2 = false; //when the player is done moving
     done3 = false; //when last line has been read
+    
+    fade = game.add.sprite(0,0, 'fadebg'); fade.scale.setTo(5, 5);
+    timer3 = game.time.create(); //timer for reset of text and stuff
+    timer3.loop(10, fadeBg, this, true, fade);
+    timer3.start();
 },
 update: function() {
     if(game.input.keyboard.justPressed(Phaser.Keyboard.SPACEBAR))
     {
-        console.log(i);
-        console.log(msgs.length);
             if(i == 3 && !done3 && !done2)
             {
                 done1 = true;
@@ -1588,7 +1625,6 @@ walk: function()
         {
             player.animations.stop();
             done2 = true;
-            console.log('hey');
         }
     }
 }
@@ -1596,6 +1632,10 @@ walk: function()
 var BeatAngel = function(game) {};
 BeatAngel.prototype = {
 create: function() {
+    if(musicOn)
+    {
+        battlebgm.play('', 0, .5, true);
+    }
     game.stage.backgroundColor = '#000';
     housebg = game.add.sprite(0, 0, 'housebg');
     knife = game.add.audio('knife');
@@ -1605,6 +1645,7 @@ create: function() {
     progtextObj = game.add.text(750, 530, '>>', { font: '15px Courier New', fill: '#FFF' });
     pc = game.add.sprite(640, 108, 'PC')
     pc.scale.setTo(.3, .3); pc.alpha = 0;
+    girl = game.add.sprite(542, 140, 'girl');
     player = game.add.sprite(425, 250, 'plyrrpr', 4); player.scale.setTo(1.75, 1.75);
     player.animations.add('up', [10, 9, 10, 11], 10, true); //up walking animation
     player.animations.add('right', [7, 6, 7, 8], 10, true); //right walking animation
@@ -1618,12 +1659,16 @@ create: function() {
     txt.text = msgs[0];
     fadebg = game.add.sprite(0,0,'fadebg'); fadebg.alpha = 0;
     timer = game.time.create(); //timer for reset of text and stuff
-    timer.loop(25, fadeBg, this, false, fadebg);
+    timer.loop(25, fadeBgs, this, false, fadebg, 'Credits');
     timer2 = game.time.create(); //timer for reset of text and stuff
     timer2.loop(25, this.walk, this);
     done1 = false; //when the ally is done talking
     done2 = false; //when the player is done moving
     done3 = false; //when last line has been read
+    fade = game.add.sprite(0,0, 'fadebg'); fade.scale.setTo(5, 5);
+    timer3 = game.time.create(); //timer for reset of text and stuff
+    timer3.loop(10, fadeBg, this, true, fade);
+    timer3.start();
 },
     
 update: function() {
@@ -1729,7 +1774,7 @@ startOver: function() {
     
 }
 
-function fadeBg(fadeIn, bg)
+function fadeBgs(fadeIn, bg, stage)
 {
     if(fadeIn && bg.alpha > 0)
     {
@@ -1739,9 +1784,31 @@ function fadeBg(fadeIn, bg)
     {
         bg.alpha += .01;
         if(bg.alpha >= 1)
-            game.state.start('Credits');
+        {
+            if(musicOn)
+            {
+                battlebgm.stop();
+                menubgm.play('', 0, .5, true);
+                musicPlaying = true;
+            }
+            game.state.start(stage);
+        }
     }
 }
+function fadeBg(fadeIn, bg)
+{
+    if(fadeIn && bg.alpha > 0)
+    {
+        bg.alpha -= .01
+    }
+    else if(bg.alpha < 1)
+    {
+        bg.alpha += .01;
+    }
+}
+
+                               
+
 //Adds game states
 game.state.add('MainMenu', MainMenu); //adds intro state
 game.state.add('Settings', Settings); //adds settings state
