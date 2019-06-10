@@ -56,7 +56,7 @@ MainMenu.prototype = {
         game.load.image('fadebg', 'assets/img/fadebg.png');
         game.load.image('savebutton', 'assets/img/Savebutton.png');
         game.load.image('reapbutton', 'assets/img/ReapButton.png');
-        game.load.image('angeltemp', 'assets/img/angeltemp.jpg');
+        game.load.image('angelfull', 'assets/img/angelfull.png');
         game.load.image('girl', 'assets/img/lilgirl.png');
         game.load.spritesheet('angelsp', 'assets/img/angel.png', 48, 64);
         game.load.spritesheet('plyrrpr', 'assets/img/plyrreaperss.png', 32, 32);
@@ -132,27 +132,6 @@ MainMenu.prototype = {
         opttext.events.onInputDown.add(this.openSettings, this);
         creditstext.events.onInputDown.add(this.openCredits, this);
         
-        if(game.input.keyboard.isDown(Phaser.Keyboard.A))
-        {
-            menubgm.stop();
-            game.state.start('Battle', true, false, true);
-        }
-        if(game.input.keyboard.isDown(Phaser.Keyboard.B))
-        {
-            menubgm.stop();
-            game.state.start('EnterHouse', true, false, true);
-            SPEED = 150;
-        }
-        if(game.input.keyboard.isDown(Phaser.Keyboard.C))
-        {
-            menubgm.stop();
-            game.state.start('GameOver', true, false, true);
-        }
-        if(game.input.keyboard.isDown(Phaser.Keyboard.D))
-        {
-            menubgm.stop();
-            game.state.start('BeatAngel');
-        }
     },
     /***** All the functions for handling text hover events *****/
     hoverPlay: function() {
@@ -435,14 +414,14 @@ Intro.prototype = {
         
     },
     preload: function() {
-        game.load.image('boss', 'assets/img/bosstemp.png');
+        game.load.image('boss', 'assets/img/boss.png');
     },
     create: function() { // Loads game state
         game.stage.backgroundColor = '#000'; // sets background color
         /* Plugin source: https://github.com/azerion/phaser-input*/
         this.input = game.add.plugin(PhaserInput.Plugin)
         pc = game.add.sprite(162, 116, 'PC'); pc.scale.setTo(-.3, .3);
-        boss = game.add.sprite(660, 200, 'boss');
+        boss = game.add.sprite(565, 160, 'boss'); boss.scale.setTo(.4, .4);
         pc.alpha = 0;
         this.textaud = game.add.audio('textaud');
         fade = game.add.sprite(0,0, 'fadebg');
@@ -1083,7 +1062,7 @@ create: function() {
     pc.scale.setTo(.3, .3);
     ally = game.add.sprite(152, 276, 'ally'); ally.alpha = 0;
     ally.scale.setTo(-.125, .125);
-    angel = game.add.sprite(300, 425, 'angeltemp'); angel.scale.setTo(.15, .15); angel.alpha = 0;
+    angel = game.add.sprite(300, 310, 'angelfull'); angel.scale.setTo(.4, .4); angel.alpha = 0;
     angelsp = game.add.sprite(250, 325, 'angelsp', 7); angelsp.alpha = 0;
     girl = game.add.sprite(355, 269, 'girl');
     pcSprite = [0, 1, 3, 5];
@@ -1253,7 +1232,12 @@ typewriter: function(msg, code)
         }
         if(game.input.keyboard.justPressed(Phaser.Keyboard.SPACEBAR))
         {
-            if(this.index >= msg.length-1)
+            if(this.i < msg[this.index].length)
+            {
+                this.i = msg[this.index].length;
+                txt.text = msg[this.index];
+            }
+            else if(this.index >= msg.length-1)
             {
                 if(code == 'first')
                 {
@@ -1264,15 +1248,10 @@ typewriter: function(msg, code)
                     this.progtextObj = '';
                 }
                 else {
-                timer2 = game.time.create(); //timer for reset of text and stuff
-                timer2.loop(50, this.fadeOut, this);
-                timer2.start();
+                    timer2 = game.time.create(); //timer for reset of text and stuff
+                    timer2.loop(50, this.fadeOut, this);
+                    timer2.start();
                 }
-            }
-            else if(this.i < msg[this.index].length)
-            {
-                this.i = msg[this.index].length;
-                txt.text = msg[this.index];
             }
             else
             {
@@ -1347,7 +1326,7 @@ preload: function()
     {
         game.load.image('meter', 'assets/img/barmeter.png');
         game.load.image('bar', 'assets/img/battlebar.png');
-        game.load.image('angel', 'assets/img/angeltemp.jpg');
+        game.load.image('angel', 'assets/img/angelfull.png');
         game.load.image('PC', 'assets/img/player_profile.png');
         game.load.image('house', 'assets/img/housebg.png');
         game.load.image('fade', 'assets/img/fadebg.png');
@@ -1388,8 +1367,8 @@ create: function()
         }
         else //makes the sprite the angel if you chose to kill the girl
         {
-            enemy = game.add.sprite(10, 205, 'angel')
-            enemy.scale.setTo(.25, .25);
+            enemy = game.add.sprite(10, 150, 'angelfull');
+            enemy.scale.setTo(.4, .4);
             enemysp = game.add.sprite(325, 245, 'angelsp', 4);
             enemysp.animations.add('bounce', [4,3], 5, true);
         }
@@ -1548,7 +1527,6 @@ create: function() {
     pc.scale.setTo(.3, .3); pc.alpha = 0;
     ally = game.add.sprite(151, 116, 'ally');
     ally.scale.setTo(-.125, .125);
-    angel = game.add.sprite(0,0, 'angeltemp'); angel.alpha = 0;
     girl = game.add.sprite(542, 140, 'girl');
     player = game.add.sprite(425, 250, 'plyrrpr', 4); player.scale.setTo(1.5, 1.5);
     player.animations.add('up', [10, 9, 10, 11], 10, true); //up walking animation
@@ -1646,6 +1624,7 @@ create: function() {
     pc = game.add.sprite(640, 108, 'PC')
     pc.scale.setTo(.3, .3); pc.alpha = 0;
     girl = game.add.sprite(542, 140, 'girl');
+    angelfull = game.add.sprite(10, 150, 'angelfull'); angelfull.scale.setTo(.4, .4);
     player = game.add.sprite(425, 250, 'plyrrpr', 4); player.scale.setTo(1.75, 1.75);
     player.animations.add('up', [10, 9, 10, 11], 10, true); //up walking animation
     player.animations.add('right', [7, 6, 7, 8], 10, true); //right walking animation
@@ -1706,6 +1685,7 @@ walk: function()
         //game.debug.spriteInfo(player, 10, 10);
         //ally.alpha -= .05;
         angelsp.alpha -= .05;
+        angelfull.alpha -= .05;
         if(player.y > 200 )
         {
             player.animations.play('up');
