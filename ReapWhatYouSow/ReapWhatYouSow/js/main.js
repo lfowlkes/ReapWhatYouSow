@@ -350,7 +350,7 @@ create: function()
     {
         game.stage.backgroundColor = '#000';
         credittxt = game.add.sprite(50, 560, 'credittxt');
-        backtxt = game.add.sprite(325, 2000, 'back');
+        backtxt = game.add.sprite(325, 2200, 'back');
         backtxt.scale.setTo(.8, .8); backtxt.inputEnabled = true;
         if(musicOn == true && musicPlaying == false) //plays music if settings are enabled and it isn't already playing
         {
@@ -362,7 +362,7 @@ create: function()
 update: function()
     {
         /* Scrolls up the credits like a movie because we're super fancy like that. */
-        if(credittxt.y > -1450)
+        if(credittxt.y > -1650)
             credittxt.y -= 1;
         if(backtxt.y > 245)
             backtxt.y -= 1;
